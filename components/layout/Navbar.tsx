@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Search, Database, User, LogOut, Settings, Plus, Bell } from 'lucide-react';
+import { Search, Database, User, LogOut, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface NavbarProps {
@@ -38,7 +38,7 @@ export function Navbar({ user, onProfileClick, onLogout, onUploadClick }: Navbar
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
       <div className="container mx-auto px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -48,10 +48,10 @@ export function Navbar({ user, onProfileClick, onLogout, onUploadClick }: Navbar
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
               <Database className="w-4 h-4 text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <span className="text-xl font-bold text-gray-900">
               DataHub
             </span>
           </motion.div>
@@ -72,18 +72,6 @@ export function Navbar({ user, onProfileClick, onLogout, onUploadClick }: Navbar
 
           {/* Right Side Actions */}
           <div className="flex items-center gap-3">
-            {/* Upload Button */}
-            {onUploadClick && (
-              <Button
-                onClick={onUploadClick}
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Upload
-              </Button>
-            )}
-
             {/* Notifications */}
             <Button variant="ghost" size="sm" className="relative">
               <Bell className="w-4 h-4 text-gray-600" />
@@ -97,7 +85,7 @@ export function Navbar({ user, onProfileClick, onLogout, onUploadClick }: Navbar
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10 border-2 border-gray-200 hover:border-gray-300 transition-colors">
                       <AvatarImage src={user.avatar} alt={user.fullName} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white font-medium">
+                      <AvatarFallback className="bg-gray-900 text-white font-medium">
                         {user.fullName.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
@@ -107,7 +95,7 @@ export function Navbar({ user, onProfileClick, onLogout, onUploadClick }: Navbar
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2">
                     <Avatar className="h-12 w-12">
                       <AvatarImage src={user.avatar} alt={user.fullName} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                      <AvatarFallback className="bg-gray-900 text-white">
                         {user.fullName.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
@@ -121,10 +109,6 @@ export function Navbar({ user, onProfileClick, onLogout, onUploadClick }: Navbar
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile Settings</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Account Settings</span>
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-red-600 focus:text-red-600">
                     <LogOut className="mr-2 h-4 w-4" />
@@ -137,7 +121,7 @@ export function Navbar({ user, onProfileClick, onLogout, onUploadClick }: Navbar
                 <Button variant="ghost" size="sm">
                   Sign In
                 </Button>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <Button size="sm" className="bg-gray-900 hover:bg-gray-800">
                   Sign Up
                 </Button>
               </div>

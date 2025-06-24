@@ -4,20 +4,17 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Database, 
-  TrendingUp, 
-  Users, 
   Download, 
+  Send, 
   Eye, 
   Calendar,
   ArrowUpRight,
-  Plus,
   Activity,
-  BarChart3,
   Globe,
-  Lock
+  Lock,
+  TrendingUp
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { DashboardStats as StatsType, UserDataset } from '@/types/dashboard';
@@ -56,30 +53,23 @@ export function DashboardOverview({
       title: 'Total Datasets',
       value: stats.datasetsUploaded,
       icon: Database,
-      description: 'Datasets uploaded',
-      color: 'from-blue-500 to-blue-600',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-600'
+      description: 'Datasets uploaded'
     },
     {
       title: 'Access Requests',
       value: stats.requestsReceived,
       icon: Download,
-      description: 'Pending requests',
-      color: 'from-green-500 to-green-600',
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-600',
-      action: () => onViewRequests('received')
+      description: 'Click to view',
+      action: () => onViewRequests('received'),
+      clickable: stats.requestsReceived > 0
     },
     {
       title: 'Sent Requests',
       value: stats.requestsSent,
-      icon: TrendingUp,
-      description: 'Your requests',
-      color: 'from-purple-500 to-purple-600',
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-600',
-      action: () => onViewRequests('sent')
+      icon: Send,
+      description: 'Click to view',
+      action: () => onViewRequests('sent'),
+      clickable: stats.requestsSent > 0
     }
   ];
 
@@ -89,7 +79,7 @@ export function DashboardOverview({
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-blue-50 via-white to-purple-50 rounded-2xl p-8 border border-gray-100">
+      <div className="bg-white rounded-xl p-8 border border-gray-200">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -112,9 +102,8 @@ export function DashboardOverview({
           <Button 
             onClick={onUploadDataset}
             size="lg"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+            className="bg-gray-900 hover:bg-gray-800 text-white font-medium px-8 py-3 rounded-lg"
           >
-            <Plus className="w-5 h-5 mr-2" />
             Upload Dataset
           </Button>
         </div>
@@ -129,22 +118,19 @@ export function DashboardOverview({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <Card className="relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-all duration-200 group">
-              <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity duration-200`} />
+            <Card 
+              className={`border border-gray-200 hover:shadow-sm transition-all duration-200 ${
+                stat.clickable ? 'cursor-pointer hover:border-gray-300' : ''
+              }`}
+              onClick={stat.clickable ? stat.action : undefined}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
-                    <stat.icon className={`w-6 h-6 ${stat.textColor}`} />
+                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <stat.icon className="w-6 h-6 text-gray-700" />
                   </div>
-                  {stat.action && stat.value > 0 && (
-                    <Button
-                      onClick={stat.action}
-                      variant="ghost"
-                      size="sm"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    >
-                      <ArrowUpRight className="w-4 h-4" />
-                    </Button>
+                  {stat.clickable && (
+                    <ArrowUpRight className="w-4 h-4 text-gray-400" />
                   )}
                 </div>
                 
@@ -159,18 +145,18 @@ export function DashboardOverview({
         ))}
       </div>
 
-      {/* Recent Activity & Quick Actions */}
+      {/* Recent Activity & Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Datasets */}
         <div className="lg:col-span-2">
-          <Card className="border-0 shadow-sm">
+          <Card className="border border-gray-200">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-blue-600" />
+                  <Activity className="w-5 h-5 text-gray-700" />
                   Recent Datasets
                 </CardTitle>
-                <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
                   View All
                 </Button>
               </div>
@@ -182,16 +168,16 @@ export function DashboardOverview({
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group"
+                  className="flex items-center gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group"
                   onClick={() => onViewDataset(dataset)}
                 >
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
-                    <Database className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Database className="w-6 h-6 text-gray-700" />
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                      <h3 className="font-medium text-gray-900 truncate group-hover:text-gray-700 transition-colors">
                         {dataset.title}
                       </h3>
                       <Badge 
@@ -229,45 +215,12 @@ export function DashboardOverview({
           </Card>
         </div>
 
-        {/* Quick Actions & Insights */}
+        {/* Performance Insights */}
         <div className="space-y-6">
-          {/* Quick Actions */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold text-gray-900">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button 
-                onClick={onUploadDataset}
-                variant="outline" 
-                className="w-full justify-start h-12 border-dashed border-2 hover:border-blue-300 hover:bg-blue-50 transition-colors"
-              >
-                <Plus className="w-4 h-4 mr-3" />
-                Upload New Dataset
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start h-12"
-                onClick={() => onViewRequests('received')}
-              >
-                <Users className="w-4 h-4 mr-3" />
-                Manage Requests
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start h-12"
-              >
-                <BarChart3 className="w-4 h-4 mr-3" />
-                View Analytics
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Performance Insights */}
-          <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-emerald-50">
+          <Card className="border border-gray-200">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-green-600" />
+                <TrendingUp className="w-5 h-5 text-gray-700" />
                 This Month
               </CardTitle>
             </CardHeader>
@@ -284,10 +237,35 @@ export function DashboardOverview({
                 <span className="text-sm text-gray-600">New Requests</span>
                 <span className="font-semibold text-gray-900">{stats.requestsReceived}</span>
               </div>
-              <div className="pt-2 border-t border-green-200">
-                <div className="flex items-center gap-2 text-sm text-green-700">
+              <div className="pt-2 border-t border-gray-200">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
                   <TrendingUp className="w-4 h-4" />
                   <span>+12% from last month</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Dataset Insights */}
+          <Card className="border border-gray-200">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg font-semibold text-gray-900">
+                Dataset Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Most Popular Category</span>
+                  <span className="font-medium text-gray-900">Climate</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Average File Size</span>
+                  <span className="font-medium text-gray-900">1.2 GB</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Public vs Private</span>
+                  <span className="font-medium text-gray-900">60% / 40%</span>
                 </div>
               </div>
             </CardContent>

@@ -253,7 +253,6 @@ export default function DashboardPage() {
         user={user}
         onProfileClick={() => setCurrentView('profile')}
         onLogout={handleLogout}
-        onUploadClick={() => setShowUploadModal(true)}
       />
       
       <div className="container mx-auto px-6 py-8">
@@ -265,7 +264,7 @@ export default function DashboardPage() {
                 onClick={() => setCurrentView('overview')}
                 className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                   currentView === 'overview'
-                    ? 'border-blue-600 text-blue-600'
+                    ? 'border-gray-900 text-gray-900'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -275,7 +274,7 @@ export default function DashboardPage() {
                 onClick={() => setCurrentView('datasets')}
                 className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                   currentView === 'datasets'
-                    ? 'border-blue-600 text-blue-600'
+                    ? 'border-gray-900 text-gray-900'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
