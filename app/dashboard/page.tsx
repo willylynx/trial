@@ -48,7 +48,8 @@ const mockDatasets: UserDataset[] = [
     downloads: 340,
     requests: 12,
     status: 'active',
-    fileSize: '2.3 GB'
+    fileSize: '2.3 GB',
+    externalUrl: 'https://data.giss.nasa.gov/gistemp/'
   },
   {
     id: '2',
@@ -64,7 +65,8 @@ const mockDatasets: UserDataset[] = [
     downloads: 156,
     requests: 8,
     status: 'active',
-    fileSize: '1.8 GB'
+    fileSize: '1.8 GB',
+    fileUrl: 'air-quality-data.csv'
   },
   {
     id: '3',
@@ -80,7 +82,8 @@ const mockDatasets: UserDataset[] = [
     downloads: 89,
     requests: 5,
     status: 'active',
-    fileSize: '890 MB'
+    fileSize: '890 MB',
+    externalUrl: 'https://databank.worldbank.org/source/world-development-indicators'
   },
   {
     id: '4',
@@ -96,7 +99,8 @@ const mockDatasets: UserDataset[] = [
     downloads: 67,
     requests: 3,
     status: 'active',
-    fileSize: '1.5 GB'
+    fileSize: '1.5 GB',
+    fileUrl: 'healthcare-outcomes.json'
   },
   {
     id: '5',
@@ -112,7 +116,8 @@ const mockDatasets: UserDataset[] = [
     downloads: 123,
     requests: 7,
     status: 'active',
-    fileSize: '650 MB'
+    fileSize: '650 MB',
+    externalUrl: 'https://uis.unesco.org/en/uis-student-flow'
   },
   {
     id: '6',
@@ -128,7 +133,8 @@ const mockDatasets: UserDataset[] = [
     downloads: 245,
     requests: 15,
     status: 'active',
-    fileSize: '980 MB'
+    fileSize: '980 MB',
+    externalUrl: 'https://www.iea.org/data-and-statistics'
   }
 ];
 
@@ -173,6 +179,7 @@ export default function DashboardPage() {
   const [datasets, setDatasets] = useState(mockDatasets);
   const [requests, setRequests] = useState(mockRequests);
   const [user, setUser] = useState(mockUser);
+  const [editingDataset, setEditingDataset] = useState<UserDataset | null>(null);
 
   const handleViewRequests = (type: 'received' | 'sent') => {
     setRequestsType(type);
@@ -196,7 +203,8 @@ export default function DashboardPage() {
   };
 
   const handleEditDataset = (dataset: UserDataset) => {
-    console.log('Edit dataset:', dataset);
+    setEditingDataset(dataset);
+    setShowUploadModal(true);
   };
 
   const handleDeleteDataset = (datasetId: string) => {
@@ -226,6 +234,27 @@ export default function DashboardPage() {
     setDatasets(prev => [newDataset, ...prev]);
   };
 
+  const handleUpdateDataset = (id: string, data: NewDatasetForm) => {
+    setDatasets(prev => prev.map(dataset => {
+      if (dataset.id === id) {
+        return {
+          ...dataset,
+          title: data.title,
+          source: data.source,
+          category: data.category,
+          country: data.country,
+          tags: data.tags,
+          accessibility: data.accessibility,
+          description: data.description,
+          fileUrl: data.dataType === 'file' && data.file ? 'updated-file.csv' : dataset.fileUrl,
+          externalUrl: data.dataType === 'link' ? data.externalUrl : dataset.externalUrl,
+          fileSize: data.dataType === 'file' && data.file ? '1.5 GB' : dataset.fileSize
+        };
+      }
+      return dataset;
+    }));
+  };
+
   const handleUpdateProfile = (data: Partial<UserProfileType>) => {
     setUser(prev => ({ ...prev, ...data }));
   };
@@ -245,6 +274,11 @@ export default function DashboardPage() {
 
   const handleLogout = () => {
     console.log('Logout');
+  };
+
+  const handleCloseUploadModal = () => {
+    setShowUploadModal(false);
+    setEditingDataset(null);
   };
 
   return (
@@ -326,8 +360,11 @@ export default function DashboardPage() {
 
       <UploadDatasetModal
         isOpen={showUploadModal}
-        onClose={() => setShowUploadModal(false)}
+        onClose={handleCloseUploadModal}
         onSubmit={handleAddDataset}
+        onUpdate={handleUpdateDataset}
+        editDataset={editingDataset}
+        mode={editingDataset ? 'edit' : 'create'}
       />
     </div>
   );

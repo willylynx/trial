@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,8 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NewDatasetForm } from '@/types/dashboard';
-import { Upload, Link, X, Plus, FileText, Globe, Check } from 'lucide-react';
+import { NewDatasetForm, UserDataset } from '@/types/dashboard';
+import { Upload, Link, X, Plus, FileText, Globe, Check, Edit } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const categories = [
@@ -28,39 +28,69 @@ const countries = [
 ];
 
 const datasetSchema = z.object({
-  title: z.string().min(5, 'Title must be at least 5 characters').max(200, 'Title too long'),
-  source: z.string().min(2, 'Source is required').max(100, 'Source too long'),
-  tags: z.array(z.string()).min(1, 'At least one tag is required').max(10, 'Maximum 10 tags'),
-  country: z.array(z.string()).min(1, 'At least one country is required'),
-  category: z.array(z.string()).min(1, 'At least one category is required'),
+  title: z.string()
+    .min(5, 'Title must be at least 5 characters')
+    .max(200, 'Title must be less than 200 characters'),
+  source: z.string()
+    .min(2, 'Source is required')
+    .max(100, 'Source must be less than 100 characters'),
+  tags: z.array(z.string())
+    .min(1, 'At least one tag is required')
+    .max(10, 'Maximum 10 tags allowed'),
+  country: z.array(z.string())
+    .min(1, 'At least one country is required'),
+  category: z.array(z.string())
+    .min(1, 'At least one category is required'),
   accessibility: z.enum(['public', 'private']),
-  description: z.string().min(50, 'Description must be at least 50 characters').max(2000, 'Description too long'),
+  description: z.string()
+    .min(50, 'Description must be at least 50 characters')
+    .max(2000, 'Description must be less than 2000 characters'),
   dataType: z.enum(['link', 'file']),
-  externalUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  externalUrl: z.string().optional(),
   file: z.any().optional()
 }).refine((data) => {
   if (data.dataType === 'link') {
-    return data.externalUrl && data.externalUrl.length > 0;
+    return data.externalUrl && data.externalUrl.length > 0 && z.string().url().safeParse(data.externalUrl).success;
   }
-  return data.file;
+  return true; // For edit mode, file might not be required
 }, {
-  message: "Please provide either a valid URL or upload a file",
-  path: ["dataType"]
+  message: "Please provide a valid URL for external link",
+  path: ["externalUrl"]
+}).refine((data) => {
+  if (data.dataType === 'file') {
+    return data.file || data.externalUrl; // Allow existing file in edit mode
+  }
+  return true;
+}, {
+  message: "Please upload a file",
+  path: ["file"]
 });
 
 interface UploadDatasetModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: NewDatasetForm) => void;
+  onUpdate?: (id: string, data: NewDatasetForm) => void;
+  editDataset?: UserDataset | null;
+  mode?: 'create' | 'edit';
 }
 
-export function UploadDatasetModal({ isOpen, onClose, onSubmit }: UploadDatasetModalProps) {
+export function UploadDatasetModal({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  onUpdate,
+  editDataset = null,
+  mode = 'create'
+}: UploadDatasetModalProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isEditMode = mode === 'edit' && editDataset;
 
   const form = useForm<NewDatasetForm>({
     resolver: zodResolver(datasetSchema),
@@ -79,6 +109,57 @@ export function UploadDatasetModal({ isOpen, onClose, onSubmit }: UploadDatasetM
   });
 
   const dataType = form.watch('dataType');
+
+  // Effect to populate form when editing
+  useEffect(() => {
+    if (isEditMode && editDataset) {
+      // Populate form with existing data
+      form.reset({
+        title: editDataset.title,
+        source: editDataset.source,
+        tags: editDataset.tags,
+        country: editDataset.country,
+        category: editDataset.category,
+        accessibility: editDataset.accessibility,
+        description: editDataset.description,
+        dataType: editDataset.externalUrl ? 'link' : 'file',
+        externalUrl: editDataset.externalUrl || '',
+        file: undefined
+      });
+
+      // Set state arrays
+      setSelectedTags(editDataset.tags);
+      setSelectedCountries(editDataset.country);
+      setSelectedCategories(editDataset.category);
+    }
+  }, [isEditMode, editDataset, form]);
+
+  // Reset form when modal closes or mode changes
+  useEffect(() => {
+    if (!isOpen) {
+      handleReset();
+    }
+  }, [isOpen]);
+
+  const handleReset = () => {
+    form.reset({
+      title: '',
+      source: '',
+      tags: [],
+      country: [],
+      category: [],
+      accessibility: 'public',
+      description: '',
+      dataType: 'link',
+      externalUrl: '',
+      file: undefined
+    });
+    setSelectedTags([]);
+    setSelectedCountries([]);
+    setSelectedCategories([]);
+    setNewTag('');
+    setIsSubmitting(false);
+  };
 
   const handleAddTag = () => {
     if (newTag.trim() && !selectedTags.includes(newTag.trim()) && selectedTags.length < 10) {
@@ -135,37 +216,66 @@ export function UploadDatasetModal({ isOpen, onClose, onSubmit }: UploadDatasetM
   const handleSubmit = async (data: NewDatasetForm) => {
     setIsSubmitting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate upload
-      onSubmit({
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const formData = {
         ...data,
         tags: selectedTags,
         country: selectedCountries,
         category: selectedCategories
-      });
+      };
+
+      if (isEditMode && editDataset && onUpdate) {
+        onUpdate(editDataset.id, formData);
+      } else {
+        onSubmit(formData);
+      }
+      
       handleClose();
+    } catch (error) {
+      console.error('Submit failed:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleClose = () => {
-    form.reset();
-    setSelectedTags([]);
-    setSelectedCountries([]);
-    setSelectedCategories([]);
-    setIsSubmitting(false);
+    handleReset();
     onClose();
+  };
+
+  const getModalTitle = () => {
+    return isEditMode ? 'Edit Dataset' : 'Upload New Dataset';
+  };
+
+  const getModalDescription = () => {
+    return isEditMode 
+      ? 'Update your dataset information and settings'
+      : 'Share your research data with the global community';
+  };
+
+  const getSubmitButtonText = () => {
+    if (isSubmitting) {
+      return isEditMode ? 'Updating...' : 'Uploading...';
+    }
+    return isEditMode ? 'Update Dataset' : 'Upload Dataset';
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0 border-b border-gray-100 pb-6">
-          <DialogTitle className="text-2xl font-bold text-gray-900">
-            Upload New Dataset
+          <DialogTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+            {isEditMode ? (
+              <Edit className="w-6 h-6 text-gray-700" />
+            ) : (
+              <Upload className="w-6 h-6 text-gray-700" />
+            )}
+            {getModalTitle()}
           </DialogTitle>
           <p className="text-gray-600 mt-2">
-            Share your research data with the global community
+            {getModalDescription()}
           </p>
         </DialogHeader>
 
@@ -226,7 +336,7 @@ export function UploadDatasetModal({ isOpen, onClose, onSubmit }: UploadDatasetM
                       <FormLabel className="text-sm font-medium text-gray-700">
                         Access Level *
                       </FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="border-gray-200 focus:border-gray-400 focus:ring-0">
                             <SelectValue placeholder="Select access level" />
@@ -267,7 +377,12 @@ export function UploadDatasetModal({ isOpen, onClose, onSubmit }: UploadDatasetM
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <div className="flex justify-between items-center">
+                        <FormMessage />
+                        <div className="text-xs text-gray-400">
+                          {field.value?.length || 0}/2000
+                        </div>
+                      </div>
                     </FormItem>
                   )}
                 />
@@ -476,11 +591,16 @@ export function UploadDatasetModal({ isOpen, onClose, onSubmit }: UploadDatasetM
                         <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                         <div className="space-y-2">
                           <p className="text-lg font-medium text-gray-900">
-                            Drop your file here, or click to browse
+                            {isEditMode ? 'Replace file or keep existing' : 'Drop your file here, or click to browse'}
                           </p>
                           <p className="text-sm text-gray-600">
                             Supports CSV, JSON, Excel, and other data formats (Max 100MB)
                           </p>
+                          {isEditMode && editDataset?.fileUrl && (
+                            <p className="text-sm text-green-600">
+                              Current file: {editDataset.fileUrl}
+                            </p>
+                          )}
                         </div>
                         <input
                           type="file"
@@ -495,11 +615,11 @@ export function UploadDatasetModal({ isOpen, onClose, onSubmit }: UploadDatasetM
                           className="mt-4 border-gray-200 hover:border-gray-300"
                           onClick={() => document.getElementById('file-upload')?.click()}
                         >
-                          Choose File
+                          {isEditMode ? 'Replace File' : 'Choose File'}
                         </Button>
                         {form.watch('file') && (
                           <p className="mt-2 text-sm text-green-600">
-                            File selected: {(form.watch('file') as File)?.name}
+                            New file selected: {(form.watch('file') as File)?.name}
                           </p>
                         )}
                       </div>
@@ -530,12 +650,12 @@ export function UploadDatasetModal({ isOpen, onClose, onSubmit }: UploadDatasetM
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Uploading...
+                  {getSubmitButtonText()}
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Upload className="w-4 h-4" />
-                  Upload Dataset
+                  {isEditMode ? <Edit className="w-4 h-4" /> : <Upload className="w-4 h-4" />}
+                  {getSubmitButtonText()}
                 </div>
               )}
             </Button>
