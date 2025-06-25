@@ -11,13 +11,21 @@ import {
   Eye, 
   Calendar,
   ArrowUpRight,
-  Activity,
   Globe,
   Lock,
-  TrendingUp
+  Plus,
+  MoreVertical,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { DashboardStats as StatsType, UserDataset } from '@/types/dashboard';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface DashboardOverviewProps {
   stats: StatsType;
@@ -25,6 +33,8 @@ interface DashboardOverviewProps {
   onViewRequests: (type: 'received' | 'sent') => void;
   onUploadDataset: () => void;
   onViewDataset: (dataset: UserDataset) => void;
+  onEditDataset: (dataset: UserDataset) => void;
+  onDeleteDataset: (datasetId: string) => void;
 }
 
 export function DashboardOverview({ 
@@ -32,7 +42,9 @@ export function DashboardOverview({
   recentDatasets, 
   onViewRequests, 
   onUploadDataset,
-  onViewDataset 
+  onViewDataset,
+  onEditDataset,
+  onDeleteDataset
 }: DashboardOverviewProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -53,7 +65,8 @@ export function DashboardOverview({
       title: 'Total Datasets',
       value: stats.datasetsUploaded,
       icon: Database,
-      description: 'Datasets uploaded'
+      description: 'Datasets uploaded',
+      color: 'bg-blue-50 text-blue-600 border-blue-200'
     },
     {
       title: 'Access Requests',
@@ -61,7 +74,8 @@ export function DashboardOverview({
       icon: Download,
       description: 'Click to view',
       action: () => onViewRequests('received'),
-      clickable: stats.requestsReceived > 0
+      clickable: stats.requestsReceived > 0,
+      color: 'bg-green-50 text-green-600 border-green-200'
     },
     {
       title: 'Sent Requests',
@@ -69,47 +83,14 @@ export function DashboardOverview({
       icon: Send,
       description: 'Click to view',
       action: () => onViewRequests('sent'),
-      clickable: stats.requestsSent > 0
+      clickable: stats.requestsSent > 0,
+      color: 'bg-purple-50 text-purple-600 border-purple-200'
     }
   ];
 
-  const totalViews = recentDatasets.reduce((acc, dataset) => acc + dataset.views, 0);
-  const totalDownloads = recentDatasets.reduce((acc, dataset) => acc + dataset.downloads, 0);
-
   return (
     <div className="space-y-8">
-      {/* Welcome Section */}
-      <div className="bg-white rounded-xl p-8 border border-gray-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome back! 👋
-            </h1>
-            <p className="text-lg text-gray-600 mb-6">
-              Here's what's happening with your datasets today.
-            </p>
-            <div className="flex items-center gap-6 text-sm text-gray-500">
-              <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4" />
-                <span>{formatNumber(totalViews)} total views</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                <span>{formatNumber(totalDownloads)} total downloads</span>
-              </div>
-            </div>
-          </div>
-          <Button 
-            onClick={onUploadDataset}
-            size="lg"
-            className="bg-gray-900 hover:bg-gray-800 text-white font-medium px-8 py-3 rounded-lg"
-          >
-            Upload Dataset
-          </Button>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {statCards.map((stat, index) => (
           <motion.div
@@ -119,15 +100,15 @@ export function DashboardOverview({
             transition={{ delay: index * 0.1 }}
           >
             <Card 
-              className={`border border-gray-200 hover:shadow-sm transition-all duration-200 ${
+              className={`border hover:shadow-md transition-all duration-200 ${
                 stat.clickable ? 'cursor-pointer hover:border-gray-300' : ''
               }`}
               onClick={stat.clickable ? stat.action : undefined}
             >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <stat.icon className="w-6 h-6 text-gray-700" />
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
+                    <stat.icon className="w-6 h-6" />
                   </div>
                   {stat.clickable && (
                     <ArrowUpRight className="w-4 h-4 text-gray-400" />
@@ -145,132 +126,152 @@ export function DashboardOverview({
         ))}
       </div>
 
-      {/* Recent Activity & Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Datasets */}
-        <div className="lg:col-span-2">
-          <Card className="border border-gray-200">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-gray-700" />
-                  Recent Datasets
-                </CardTitle>
-                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                  View All
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {recentDatasets.slice(0, 4).map((dataset, index) => (
-                <motion.div
-                  key={dataset.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-center gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group"
-                  onClick={() => onViewDataset(dataset)}
-                >
-                  <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <Database className="w-6 h-6 text-gray-700" />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium text-gray-900 truncate group-hover:text-gray-700 transition-colors">
-                        {dataset.title}
-                      </h3>
+      {/* Recent Datasets Section */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Recent Datasets</h2>
+            <p className="text-gray-600 mt-1">Your latest uploaded datasets</p>
+          </div>
+          <Button 
+            onClick={onUploadDataset}
+            className="bg-gray-900 hover:bg-gray-800 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Upload Dataset
+          </Button>
+        </div>
+
+        {/* Dataset Cards Grid - 2 rows, 3 per row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {recentDatasets.slice(0, 6).map((dataset, index) => (
+            <motion.div
+              key={dataset.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              <Card className="group hover:shadow-lg transition-all duration-200 border border-gray-200 bg-white h-full flex flex-col">
+                <CardContent className="p-6 flex-1 flex flex-col">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-2">
                       <Badge 
-                        variant={dataset.accessibility === 'public' ? 'default' : 'outline'}
-                        className="text-xs"
+                        variant="outline" 
+                        className={`text-xs ${
+                          dataset.status === 'active' 
+                            ? 'bg-green-50 text-green-700 border-green-200' 
+                            : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                        }`}
+                      >
+                        {dataset.status}
+                      </Badge>
+                      <Badge 
+                        variant="outline"
+                        className="text-xs flex items-center gap-1"
                       >
                         {dataset.accessibility === 'public' ? (
-                          <Globe className="w-3 h-3 mr-1" />
+                          <Globe className="w-3 h-3" />
                         ) : (
-                          <Lock className="w-3 h-3 mr-1" />
+                          <Lock className="w-3 h-3" />
                         )}
                         {dataset.accessibility}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {formatDate(dataset.uploadDate)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        {formatNumber(dataset.views)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Download className="w-3 h-3" />
-                        {formatNumber(dataset.downloads)}
-                      </span>
-                    </div>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onEditDataset(dataset)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => onDeleteDataset(dataset.id)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   
-                  <ArrowUpRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </motion.div>
-              ))}
-            </CardContent>
-          </Card>
+                  {/* Title */}
+                  <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight">
+                    {dataset.title}
+                  </h3>
+                  
+                  {/* Date */}
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
+                    <Calendar className="w-4 h-4" />
+                    {formatDate(dataset.uploadDate)}
+                  </div>
+                  
+                  {/* Description */}
+                  <p className="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">
+                    {dataset.description.replace(/<[^>]*>/g, '')}
+                  </p>
+                  
+                  {/* Categories */}
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {dataset.category.slice(0, 2).map((cat) => (
+                      <Badge key={cat} variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+                        {cat}
+                      </Badge>
+                    ))}
+                    {dataset.category.length > 2 && (
+                      <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+                        +{dataset.category.length - 2}
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {/* Stats & Action */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Eye className="w-4 h-4" />
+                        {formatNumber(dataset.views)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Download className="w-4 h-4" />
+                        {formatNumber(dataset.downloads)}
+                      </div>
+                    </div>
+                    
+                    <Button
+                      onClick={() => onViewDataset(dataset)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-600 hover:text-gray-900"
+                    >
+                      View
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Performance Insights */}
-        <div className="space-y-6">
-          <Card className="border border-gray-200">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-gray-700" />
-                This Month
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Total Views</span>
-                <span className="font-semibold text-gray-900">{formatNumber(totalViews)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Downloads</span>
-                <span className="font-semibold text-gray-900">{formatNumber(totalDownloads)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">New Requests</span>
-                <span className="font-semibold text-gray-900">{stats.requestsReceived}</span>
-              </div>
-              <div className="pt-2 border-t border-gray-200">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <TrendingUp className="w-4 h-4" />
-                  <span>+12% from last month</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Dataset Insights */}
-          <Card className="border border-gray-200">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold text-gray-900">
-                Dataset Insights
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Most Popular Category</span>
-                  <span className="font-medium text-gray-900">Climate</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Average File Size</span>
-                  <span className="font-medium text-gray-900">1.2 GB</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Public vs Private</span>
-                  <span className="font-medium text-gray-900">60% / 40%</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* View All Datasets Link */}
+        {recentDatasets.length > 6 && (
+          <div className="text-center pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = '/datasets'}
+              className="border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+            >
+              View All Datasets ({recentDatasets.length})
+              <ArrowUpRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

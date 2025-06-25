@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { UserDataset } from '@/types/dashboard';
-import { Search, Eye, Download, Calendar, Globe, Lock, MoreVertical, Edit, Trash2, Plus } from 'lucide-react';
+import { Search, Eye, Download, Calendar, Globe, Lock, MoreVertical, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DropdownMenu,
@@ -20,21 +20,17 @@ interface DatasetListProps {
   onViewDataset: (dataset: UserDataset) => void;
   onEditDataset: (dataset: UserDataset) => void;
   onDeleteDataset: (datasetId: string) => void;
-  showAddButton?: boolean;
-  onAddDataset?: () => void;
 }
 
 export function DatasetList({ 
   datasets, 
   onViewDataset, 
   onEditDataset, 
-  onDeleteDataset,
-  showAddButton = false,
-  onAddDataset
+  onDeleteDataset
 }: DatasetListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 9; // 3 rows of 3 cards each
 
   const filteredDatasets = datasets.filter(dataset =>
     dataset.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -63,51 +59,35 @@ export function DatasetList({
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Search and Results Info */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
-            {showAddButton ? 'Recent Datasets' : 'All Datasets'}
+            All Datasets
           </h2>
           <p className="text-sm text-gray-600 mt-1">
             {filteredDatasets.length} of {datasets.length} datasets
+            {searchQuery && ` matching "${searchQuery}"`}
           </p>
         </div>
-        
-        {showAddButton && onAddDataset && (
-          <Button onClick={onAddDataset} className="bg-gray-900 hover:bg-gray-800">
-            <Plus className="w-4 h-4 mr-2" />
-            Upload Dataset
-          </Button>
-        )}
       </div>
-
-      {/* Search */}
-      {!showAddButton && (
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search datasets..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="pl-10 border-gray-200 focus:border-gray-300 focus:ring-0"
-          />
-        </div>
-      )}
 
       {/* Dataset Grid */}
       <AnimatePresence mode="wait">
         {paginatedDatasets.length > 0 ? (
           <motion.div
-            key="datasets"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            key={`page-${currentPage}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {paginatedDatasets.map((dataset, index) => (
@@ -115,9 +95,9 @@ export function DatasetList({
                 key={dataset.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: index * 0.05, duration: 0.3 }}
               >
-                <Card className="group hover:shadow-md transition-all duration-200 border border-gray-200 bg-white h-full flex flex-col">
+                <Card className="group hover:shadow-lg transition-all duration-200 border border-gray-200 bg-white h-full flex flex-col">
                   <CardContent className="p-6 flex-1 flex flex-col">
                     {/* Header */}
                     <div className="flex items-start justify-between mb-4">
@@ -229,7 +209,7 @@ export function DatasetList({
             className="text-center py-12"
           >
             <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-              <Database className="w-8 h-8 text-gray-400" />
+              <Search className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No datasets found</h3>
             <p className="text-gray-600">
@@ -240,44 +220,66 @@ export function DatasetList({
       </AnimatePresence>
 
       {/* Pagination */}
-      {totalPages > 1 && !showAddButton && (
-        <div className="flex items-center justify-center gap-2 mt-8">
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-8 pt-8 border-t border-gray-200">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             className="border-gray-200 hover:border-gray-300"
           >
+            <ChevronLeft className="w-4 h-4 mr-1" />
             Previous
           </Button>
           
           <div className="flex items-center gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                variant={currentPage === page ? "default" : "outline"}
-                size="sm"
-                onClick={() => setCurrentPage(page)}
-                className={currentPage === page 
-                  ? "bg-gray-900 text-white" 
-                  : "border-gray-200 hover:border-gray-300"
-                }
-              >
-                {page}
-              </Button>
-            ))}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNumber;
+              if (totalPages <= 5) {
+                pageNumber = i + 1;
+              } else if (currentPage <= 3) {
+                pageNumber = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNumber = totalPages - 4 + i;
+              } else {
+                pageNumber = currentPage - 2 + i;
+              }
+
+              return (
+                <Button
+                  key={pageNumber}
+                  variant={currentPage === pageNumber ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(pageNumber)}
+                  className={currentPage === pageNumber 
+                    ? "bg-gray-900 text-white" 
+                    : "border-gray-200 hover:border-gray-300"
+                  }
+                >
+                  {pageNumber}
+                </Button>
+              );
+            })}
           </div>
           
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             className="border-gray-200 hover:border-gray-300"
           >
             Next
+            <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
+        </div>
+      )}
+
+      {/* Pagination Info */}
+      {totalPages > 1 && (
+        <div className="text-center text-sm text-gray-500">
+          Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredDatasets.length)} of {filteredDatasets.length} datasets
         </div>
       )}
     </div>

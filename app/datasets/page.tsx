@@ -2,36 +2,32 @@
 
 import { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
-import { DashboardOverview } from '@/components/dashboard/DashboardOverview';
-import { RequestsModal } from '@/components/dashboard/RequestsModal';
-import { ProfilePage } from '@/components/profile/ProfilePage';
+import { DatasetList } from '@/components/dashboard/DatasetList';
 import { UploadDatasetModal } from '@/components/modals/UploadDatasetModal';
 import { 
-  DashboardStats as StatsType, 
   UserDataset, 
-  DatasetRequest, 
   UserProfile as UserProfileType,
   NewDatasetForm 
 } from '@/types/dashboard';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Search, Database, Filter, Plus } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-// Mock data
+// Mock user data
 const mockUser: UserProfileType = {
   id: '1',
   fullName: 'Dr. Sarah Johnson',
   email: 'sarah.johnson@university.edu',
   avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=200',
   dateJoined: '2023-06-15',
-  bio: 'Climate researcher specializing in global temperature analysis and environmental data science. Passionate about making climate data accessible to researchers worldwide.',
+  bio: 'Climate researcher specializing in global temperature analysis and environmental data science.',
   organization: 'Stanford University',
   location: 'California, USA'
 };
 
-const mockStats: StatsType = {
-  datasetsUploaded: 12,
-  requestsReceived: 8,
-  requestsSent: 3
-};
-
+// Extended mock datasets for pagination demo
 const mockDatasets: UserDataset[] = [
   {
     id: '1',
@@ -134,68 +130,82 @@ const mockDatasets: UserDataset[] = [
     status: 'active',
     fileSize: '980 MB',
     externalUrl: 'https://www.iea.org/data-and-statistics'
+  },
+  {
+    id: '7',
+    title: 'Social Media Sentiment Analysis Dataset',
+    source: 'Twitter API',
+    category: ['Technology', 'Social'],
+    country: ['Global'],
+    tags: ['social media', 'sentiment', 'analysis', 'NLP'],
+    accessibility: 'private',
+    description: 'Large-scale social media sentiment analysis dataset containing millions of tweets with sentiment labels.',
+    uploadDate: '2023-12-20',
+    views: 2340,
+    downloads: 567,
+    requests: 23,
+    status: 'active',
+    fileSize: '4.2 GB',
+    fileUrl: 'sentiment-data.json'
+  },
+  {
+    id: '8',
+    title: 'Global Food Security Index 2023',
+    source: 'FAO',
+    category: ['Agriculture', 'Economy'],
+    country: ['Global'],
+    tags: ['food security', 'agriculture', 'nutrition', 'FAO'],
+    accessibility: 'public',
+    description: 'Comprehensive food security indicators including availability, accessibility, utilization, and stability metrics.',
+    uploadDate: '2023-12-15',
+    views: 890,
+    downloads: 234,
+    requests: 11,
+    status: 'active',
+    fileSize: '1.3 GB',
+    externalUrl: 'https://www.fao.org/faostat/en/'
+  },
+  {
+    id: '9',
+    title: 'Urban Transportation Patterns 2023',
+    source: 'Department of Transportation',
+    category: ['Transport', 'Urban'],
+    country: ['United States'],
+    tags: ['transportation', 'urban', 'mobility', 'traffic'],
+    accessibility: 'public',
+    description: 'Urban transportation patterns and mobility data from major metropolitan areas.',
+    uploadDate: '2023-12-10',
+    views: 567,
+    downloads: 123,
+    requests: 8,
+    status: 'active',
+    fileSize: '2.1 GB',
+    fileUrl: 'transport-data.csv'
+  },
+  {
+    id: '10',
+    title: 'Biodiversity Conservation Status Report',
+    source: 'IUCN',
+    category: ['Environment', 'Conservation'],
+    country: ['Global'],
+    tags: ['biodiversity', 'conservation', 'species', 'IUCN'],
+    accessibility: 'public',
+    description: 'Global biodiversity conservation status and species threat assessment data.',
+    uploadDate: '2023-12-05',
+    views: 445,
+    downloads: 89,
+    requests: 6,
+    status: 'active',
+    fileSize: '756 MB',
+    externalUrl: 'https://www.iucnredlist.org/'
   }
 ];
 
-const mockRequests: DatasetRequest[] = [
-  {
-    id: '1',
-    datasetId: '2',
-    datasetTitle: 'Urban Air Quality Index - Major Cities 2023',
-    requesterName: 'Dr. Michael Chen',
-    requesterEmail: 'michael.chen@research.org',
-    requestDate: '2024-01-20',
-    status: 'pending',
-    message: 'I would like to use this dataset for my research on urban pollution patterns. This data would be invaluable for my upcoming publication on air quality trends.'
-  },
-  {
-    id: '2',
-    datasetId: '1',
-    datasetTitle: 'Global Climate Temperature Anomalies 1880-2023',
-    requesterName: 'Prof. Emily Rodriguez',
-    requesterEmail: 'emily.rodriguez@university.edu',
-    requestDate: '2024-01-18',
-    status: 'approved',
-    message: 'Requesting access for climate modeling research project funded by NSF.'
-  },
-  {
-    id: '3',
-    datasetId: '4',
-    datasetTitle: 'Healthcare Treatment Outcomes Database',
-    requesterName: 'Dr. James Wilson',
-    requesterEmail: 'james.wilson@medcenter.org',
-    requestDate: '2024-01-16',
-    status: 'pending',
-    message: 'Need this data for comparative analysis of treatment effectiveness across different healthcare systems.'
-  }
-];
-
-export default function DashboardPage() {
-  const [currentView, setCurrentView] = useState<'overview' | 'profile'>('overview');
-  const [showRequestsModal, setShowRequestsModal] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [requestsType, setRequestsType] = useState<'received' | 'sent'>('received');
+export default function DatasetsPage() {
   const [datasets, setDatasets] = useState(mockDatasets);
-  const [requests, setRequests] = useState(mockRequests);
-  const [user, setUser] = useState(mockUser);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [editingDataset, setEditingDataset] = useState<UserDataset | null>(null);
-
-  const handleViewRequests = (type: 'received' | 'sent') => {
-    setRequestsType(type);
-    setShowRequestsModal(true);
-  };
-
-  const handleApproveRequest = (requestId: string) => {
-    setRequests(prev => prev.map(req => 
-      req.id === requestId ? { ...req, status: 'approved' as const } : req
-    ));
-  };
-
-  const handleRejectRequest = (requestId: string) => {
-    setRequests(prev => prev.map(req => 
-      req.id === requestId ? { ...req, status: 'rejected' as const } : req
-    ));
-  };
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleViewDataset = (dataset: UserDataset) => {
     console.log('View dataset:', dataset);
@@ -254,92 +264,110 @@ export default function DashboardPage() {
     }));
   };
 
-  const handleUpdateProfile = (data: Partial<UserProfileType>) => {
-    setUser(prev => ({ ...prev, ...data }));
-  };
-
-  const handleUpdatePassword = (data: { currentPassword: string; newPassword: string }) => {
-    console.log('Update password:', data);
-  };
-
-  const handleUpdateAvatar = (file: File) => {
-    console.log('Update avatar:', file);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setUser(prev => ({ ...prev, avatar: e.target?.result as string }));
-    };
-    reader.readAsDataURL(file);
+  const handleCloseUploadModal = () => {
+    setShowUploadModal(false);
+    setEditingDataset(null);
   };
 
   const handleLogout = () => {
     console.log('Logout');
   };
 
-  const handleCloseUploadModal = () => {
-    setShowUploadModal(false);
-    setEditingDataset(null);
-  };
+  const filteredDatasets = datasets.filter(dataset =>
+    dataset.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    dataset.category.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    dataset.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar 
-        user={user}
-        onProfileClick={() => setCurrentView('profile')}
+        user={mockUser}
+        onProfileClick={() => window.location.href = '/dashboard'}
         onLogout={handleLogout}
       />
       
       <div className="container mx-auto px-6 py-8">
-        {/* Navigation Tabs */}
-        {currentView !== 'profile' && (
-          <div className="mb-8">
-            <nav className="flex space-x-8">
-              <button
-                onClick={() => setCurrentView('overview')}
-                className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  currentView === 'overview'
-                    ? 'border-gray-900 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Dashboard
-              </button>
-            </nav>
-          </div>
-        )}
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <Card className="border border-gray-200 bg-gradient-to-r from-gray-50 to-white shadow-sm">
+            <CardContent className="p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gray-900 rounded-xl flex items-center justify-center">
+                    <Database className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900">My Datasets</h1>
+                    <p className="text-gray-600 mt-1">
+                      Manage and organize all your research datasets
+                    </p>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={() => setShowUploadModal(true)}
+                  className="bg-gray-900 hover:bg-gray-800 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Upload Dataset
+                </Button>
+              </div>
 
-        {/* Content */}
-        {currentView === 'overview' && (
-          <DashboardOverview
-            stats={mockStats}
-            recentDatasets={datasets}
-            onViewRequests={handleViewRequests}
-            onUploadDataset={() => setShowUploadModal(true)}
+              {/* Search Bar */}
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Search datasets..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 border-gray-200 focus:border-gray-300 focus:ring-0 bg-white"
+                />
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-gray-200">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{datasets.length}</div>
+                  <div className="text-sm text-gray-600">Total Datasets</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {datasets.reduce((acc, d) => acc + d.views, 0).toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-600">Total Views</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {datasets.reduce((acc, d) => acc + d.downloads, 0).toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-600">Total Downloads</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Dataset List with Pagination */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <DatasetList
+            datasets={filteredDatasets}
             onViewDataset={handleViewDataset}
             onEditDataset={handleEditDataset}
             onDeleteDataset={handleDeleteDataset}
           />
-        )}
-
-        {currentView === 'profile' && (
-          <ProfilePage
-            user={user}
-            onUpdateProfile={handleUpdateProfile}
-            onUpdatePassword={handleUpdatePassword}
-            onUpdateAvatar={handleUpdateAvatar}
-          />
-        )}
+        </motion.div>
       </div>
 
-      {/* Modals */}
-      <RequestsModal
-        isOpen={showRequestsModal}
-        onClose={() => setShowRequestsModal(false)}
-        requests={requests}
-        type={requestsType}
-        onApprove={handleApproveRequest}
-        onReject={handleRejectRequest}
-      />
-
+      {/* Upload Modal */}
       <UploadDatasetModal
         isOpen={showUploadModal}
         onClose={handleCloseUploadModal}

@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Search, Database, User, LogOut, Bell } from 'lucide-react';
+import { Search, Database, User, LogOut, Bell, LayoutDashboard, FolderOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface NavbarProps {
@@ -105,6 +105,14 @@ export function Navbar({ user, onProfileClick, onLogout, onUploadClick }: Navbar
                     </div>
                   </div>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push('/dashboard')} className="cursor-pointer">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/datasets')} className="cursor-pointer">
+                    <FolderOpen className="mr-2 h-4 w-4" />
+                    <span>My Datasets</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={onProfileClick} className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile Settings</span>
