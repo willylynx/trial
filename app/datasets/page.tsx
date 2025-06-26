@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DatasetList } from '@/components/dashboard/DatasetList';
 import { UploadDatasetModal } from '@/components/modals/UploadDatasetModal';
 import { 
@@ -10,9 +10,8 @@ import {
   NewDatasetForm 
 } from '@/types/dashboard';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Database, Filter, Plus } from 'lucide-react';
+import { Database, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 // Mock user data
@@ -205,7 +204,6 @@ export default function DatasetsPage() {
   const [datasets, setDatasets] = useState(mockDatasets);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [editingDataset, setEditingDataset] = useState<UserDataset | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const handleViewDataset = (dataset: UserDataset) => {
     console.log('View dataset:', dataset);
@@ -269,30 +267,13 @@ export default function DatasetsPage() {
     setEditingDataset(null);
   };
 
-  const handleLogout = () => {
-    console.log('Logout');
-  };
-
-  const filteredDatasets = datasets.filter(dataset =>
-    dataset.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    dataset.category.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    dataset.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar 
-        user={mockUser}
-        onProfileClick={() => window.location.href = '/dashboard'}
-        onLogout={handleLogout}
-      />
-      
-      <div className="container mx-auto px-6 py-8">
+    <DashboardLayout user={mockUser}>
+      <div className="space-y-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
         >
           <Card className="border border-gray-200 bg-gradient-to-r from-gray-50 to-white shadow-sm">
             <CardContent className="p-8">
@@ -318,19 +299,8 @@ export default function DatasetsPage() {
                 </Button>
               </div>
 
-              {/* Search Bar */}
-              <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search datasets..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-gray-200 focus:border-gray-300 focus:ring-0 bg-white"
-                />
-              </div>
-
               {/* Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-gray-200">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-900">{datasets.length}</div>
                   <div className="text-sm text-gray-600">Total Datasets</div>
@@ -359,7 +329,7 @@ export default function DatasetsPage() {
           transition={{ delay: 0.1 }}
         >
           <DatasetList
-            datasets={filteredDatasets}
+            datasets={datasets}
             onViewDataset={handleViewDataset}
             onEditDataset={handleEditDataset}
             onDeleteDataset={handleDeleteDataset}
@@ -376,6 +346,6 @@ export default function DatasetsPage() {
         editDataset={editingDataset}
         mode={editingDataset ? 'edit' : 'create'}
       />
-    </div>
+    </DashboardLayout>
   );
 }

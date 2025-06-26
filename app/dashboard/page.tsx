@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { DashboardOverview } from '@/components/dashboard/DashboardOverview';
 import { RequestsModal } from '@/components/dashboard/RequestsModal';
-import { ProfilePage } from '@/components/profile/ProfilePage';
 import { UploadDatasetModal } from '@/components/modals/UploadDatasetModal';
 import { 
   DashboardStats as StatsType, 
@@ -100,40 +99,6 @@ const mockDatasets: UserDataset[] = [
     status: 'active',
     fileSize: '1.5 GB',
     fileUrl: 'healthcare-outcomes.json'
-  },
-  {
-    id: '5',
-    title: 'Educational Performance Metrics 2023',
-    source: 'UNESCO',
-    category: ['Education'],
-    country: ['Multiple'],
-    tags: ['education', 'performance', 'schools', 'literacy'],
-    accessibility: 'public',
-    description: 'Educational performance data including literacy rates, graduation rates, and academic achievement scores.',
-    uploadDate: '2023-12-28',
-    views: 780,
-    downloads: 123,
-    requests: 7,
-    status: 'active',
-    fileSize: '650 MB',
-    externalUrl: 'https://uis.unesco.org/en/uis-student-flow'
-  },
-  {
-    id: '6',
-    title: 'Renewable Energy Production Statistics',
-    source: 'IEA',
-    category: ['Energy', 'Environment'],
-    country: ['Global'],
-    tags: ['renewable', 'energy', 'solar', 'wind', 'production'],
-    accessibility: 'public',
-    description: 'Global renewable energy production statistics including solar, wind, and hydroelectric power generation data.',
-    uploadDate: '2023-12-25',
-    views: 1100,
-    downloads: 245,
-    requests: 15,
-    status: 'active',
-    fileSize: '980 MB',
-    externalUrl: 'https://www.iea.org/data-and-statistics'
   }
 ];
 
@@ -167,17 +132,25 @@ const mockRequests: DatasetRequest[] = [
     requestDate: '2024-01-16',
     status: 'pending',
     message: 'Need this data for comparative analysis of treatment effectiveness across different healthcare systems.'
+  },
+  {
+    id: '4',
+    datasetId: '3',
+    datasetTitle: 'Economic Growth Indicators - Developing Nations',
+    requesterName: 'Dr. Sarah Johnson',
+    requesterEmail: 'sarah.johnson@university.edu',
+    requestDate: '2024-01-14',
+    status: 'rejected',
+    message: 'Requesting access for economic research on developing nations.'
   }
 ];
 
 export default function DashboardPage() {
-  const [currentView, setCurrentView] = useState<'overview' | 'profile'>('overview');
   const [showRequestsModal, setShowRequestsModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [requestsType, setRequestsType] = useState<'received' | 'sent'>('received');
   const [datasets, setDatasets] = useState(mockDatasets);
   const [requests, setRequests] = useState(mockRequests);
-  const [user, setUser] = useState(mockUser);
   const [editingDataset, setEditingDataset] = useState<UserDataset | null>(null);
 
   const handleViewRequests = (type: 'received' | 'sent') => {
@@ -254,80 +227,31 @@ export default function DashboardPage() {
     }));
   };
 
-  const handleUpdateProfile = (data: Partial<UserProfileType>) => {
-    setUser(prev => ({ ...prev, ...data }));
-  };
-
-  const handleUpdatePassword = (data: { currentPassword: string; newPassword: string }) => {
-    console.log('Update password:', data);
-  };
-
-  const handleUpdateAvatar = (file: File) => {
-    console.log('Update avatar:', file);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setUser(prev => ({ ...prev, avatar: e.target?.result as string }));
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleLogout = () => {
-    console.log('Logout');
-  };
-
   const handleCloseUploadModal = () => {
     setShowUploadModal(false);
     setEditingDataset(null);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar 
-        user={user}
-        onProfileClick={() => setCurrentView('profile')}
-        onLogout={handleLogout}
-      />
-      
-      <div className="container mx-auto px-6 py-8">
-        {/* Navigation Tabs */}
-        {currentView !== 'profile' && (
-          <div className="mb-8">
-            <nav className="flex space-x-8">
-              <button
-                onClick={() => setCurrentView('overview')}
-                className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  currentView === 'overview'
-                    ? 'border-gray-900 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Dashboard
-              </button>
-            </nav>
-          </div>
-        )}
+    <DashboardLayout user={mockUser}>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-2">Welcome back! Here's what's happening with your datasets.</p>
+        </div>
 
-        {/* Content */}
-        {currentView === 'overview' && (
-          <DashboardOverview
-            stats={mockStats}
-            recentDatasets={datasets}
-            onViewRequests={handleViewRequests}
-            onUploadDataset={() => setShowUploadModal(true)}
-            onViewDataset={handleViewDataset}
-            onEditDataset={handleEditDataset}
-            onDeleteDataset={handleDeleteDataset}
-          />
-        )}
-
-        {currentView === 'profile' && (
-          <ProfilePage
-            user={user}
-            onUpdateProfile={handleUpdateProfile}
-            onUpdatePassword={handleUpdatePassword}
-            onUpdateAvatar={handleUpdateAvatar}
-          />
-        )}
+        <DashboardOverview
+          stats={mockStats}
+          recentDatasets={datasets}
+          requests={requests}
+          onViewRequests={handleViewRequests}
+          onUploadDataset={() => setShowUploadModal(true)}
+          onViewDataset={handleViewDataset}
+          onEditDataset={handleEditDataset}
+          onDeleteDataset={handleDeleteDataset}
+          onApproveRequest={handleApproveRequest}
+          onRejectRequest={handleRejectRequest}
+        />
       </div>
 
       {/* Modals */}
@@ -348,6 +272,6 @@ export default function DashboardPage() {
         editDataset={editingDataset}
         mode={editingDataset ? 'edit' : 'create'}
       />
-    </div>
+    </DashboardLayout>
   );
 }

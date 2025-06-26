@@ -61,6 +61,9 @@ const config: Config = {
           '5': 'hsl(var(--chart-5))',
         },
       },
+      spacing: {
+        '70': '17.5rem', // 280px for sidebar width
+      },
       keyframes: {
         'accordion-down': {
           from: {
