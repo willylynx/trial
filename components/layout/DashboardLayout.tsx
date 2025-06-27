@@ -43,44 +43,37 @@ const sidebarItems = [
   {
     title: 'Dashboard',
     href: '/dashboard',
-    icon: LayoutDashboard,
-    description: 'Overview and analytics'
+    icon: LayoutDashboard
   },
   {
     title: 'My Datasets',
     href: '/datasets',
-    icon: Database,
-    description: 'Manage your datasets'
+    icon: Database
   },
   {
     title: 'Analytics',
     href: '/analytics',
-    icon: BarChart3,
-    description: 'Performance insights'
+    icon: BarChart3
   },
   {
     title: 'Requests',
     href: '/requests',
-    icon: MessageSquare,
-    description: 'Access requests'
+    icon: MessageSquare
   },
   {
     title: 'Upload',
     href: '/upload',
-    icon: Upload,
-    description: 'Add new dataset'
+    icon: Upload
   },
   {
     title: 'Settings',
     href: '/settings',
-    icon: Settings,
-    description: 'Account settings'
+    icon: Settings
   },
   {
     title: 'Help',
     href: '/help',
-    icon: HelpCircle,
-    description: 'Support and docs'
+    icon: HelpCircle
   }
 ];
 
@@ -124,11 +117,104 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16">
-        <div className="flex items-center justify-between h-full px-4">
-          {/* Left side - Logo and Menu Toggle */}
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <>
+            {/* Mobile Overlay */}
+            {isMobile && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSidebarOpen(false)}
+                className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+              />
+            )}
+
+            {/* Sidebar */}
+            <motion.aside
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className={cn(
+                "fixed top-0 left-0 z-50 w-70 h-screen bg-white border-r border-gray-200 overflow-y-auto lg:relative lg:z-auto",
+                isMobile ? "shadow-xl" : ""
+              )}
+            >
+              <div className="p-6">
+                {/* Logo */}
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center">
+                    <Database className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-xl font-bold text-gray-900">
+                    DataHub
+                  </span>
+                </div>
+
+                {/* Navigation Items */}
+                <nav className="space-y-2">
+                  {sidebarItems.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <motion.div
+                        key={item.href}
+                        whileHover={{ x: 4 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Button
+                          variant={isActive ? "default" : "ghost"}
+                          onClick={() => {
+                            router.push(item.href);
+                            if (isMobile) setSidebarOpen(false);
+                          }}
+                          className={cn(
+                            "w-full justify-start h-12 px-4 text-left font-medium transition-all duration-200",
+                            isActive
+                              ? "bg-gray-900 text-white hover:bg-gray-800 shadow-sm"
+                              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                          )}
+                        >
+                          <item.icon className="w-5 h-5 mr-3" />
+                          {item.title}
+                        </Button>
+                      </motion.div>
+                    );
+                  })}
+                </nav>
+
+                {/* Quick Stats */}
+                <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Stats</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Datasets</span>
+                      <span className="font-medium text-gray-900">12</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">This Month</span>
+                      <span className="font-medium text-gray-900">3</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Views</span>
+                      <span className="font-medium text-gray-900">45.2K</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Navigation */}
+        <nav className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+          {/* Left side - Menu Toggle */}
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -136,17 +222,8 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
               onClick={toggleSidebar}
               className="p-2 hover:bg-gray-100"
             >
-              <Menu className="w-5 h-5" />
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
-            
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-                <Database className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900 hidden sm:block">
-                DataHub
-              </span>
-            </div>
           </div>
 
           {/* Center - Search Bar */}
@@ -215,124 +292,19 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
               </DropdownMenu>
             )}
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      {/* Sidebar */}
-      <AnimatePresence>
-        {sidebarOpen && (
-          <>
-            {/* Mobile Overlay */}
-            {isMobile && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setSidebarOpen(false)}
-                className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-              />
-            )}
-
-            {/* Sidebar */}
-            <motion.aside
-              initial={{ x: -280 }}
-              animate={{ x: 0 }}
-              exit={{ x: -280 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className={cn(
-                "fixed top-16 left-0 z-40 w-70 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 overflow-y-auto",
-                isMobile ? "shadow-xl" : ""
-              )}
-            >
-              <div className="p-6">
-                {/* Close button for mobile */}
-                {isMobile && (
-                  <div className="flex justify-end mb-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSidebarOpen(false)}
-                      className="p-2 hover:bg-gray-100"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-
-                {/* Navigation Items */}
-                <nav className="space-y-2">
-                  {sidebarItems.map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                      <motion.div
-                        key={item.href}
-                        whileHover={{ x: 4 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <Button
-                          variant={isActive ? "default" : "ghost"}
-                          onClick={() => {
-                            router.push(item.href);
-                            if (isMobile) setSidebarOpen(false);
-                          }}
-                          className={cn(
-                            "w-full justify-start h-12 px-4 text-left font-medium transition-all duration-200",
-                            isActive
-                              ? "bg-gray-900 text-white hover:bg-gray-800 shadow-sm"
-                              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                          )}
-                        >
-                          <item.icon className="w-5 h-5 mr-3" />
-                          <div className="flex-1">
-                            <div className="font-medium">{item.title}</div>
-                            <div className={cn(
-                              "text-xs opacity-75",
-                              isActive ? "text-gray-300" : "text-gray-500"
-                            )}>
-                              {item.description}
-                            </div>
-                          </div>
-                        </Button>
-                      </motion.div>
-                    );
-                  })}
-                </nav>
-
-                {/* Quick Stats */}
-                <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Stats</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Total Datasets</span>
-                      <span className="font-medium text-gray-900">12</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">This Month</span>
-                      <span className="font-medium text-gray-900">3</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Total Views</span>
-                      <span className="font-medium text-gray-900">45.2K</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Main Content */}
-      <main
-        className={cn(
-          "pt-16 transition-all duration-300",
-          sidebarOpen && !isMobile ? "ml-70" : "ml-0"
-        )}
-      >
-        <div className="p-6">
-          {children}
-        </div>
-      </main>
+        {/* Main Content */}
+        <main className="flex-1 p-6 overflow-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            {children}
+          </motion.div>
+        </main>
+      </div>
     </div>
   );
 }
