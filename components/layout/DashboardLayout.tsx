@@ -80,19 +80,16 @@ const sidebarItems = [
 export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobile, setIsMobile] = useState(false);
 
   // Check if mobile on mount and resize
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-      if (window.innerWidth >= 1024) {
-        setSidebarOpen(true);
-      } else {
-        setSidebarOpen(false);
-      }
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      setSidebarOpen(!mobile);
     };
 
     checkMobile();
@@ -117,7 +114,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
       {/* Sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -135,18 +132,25 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
 
             {/* Sidebar */}
             <motion.aside
-              initial={{ x: -280 }}
-              animate={{ x: 0 }}
-              exit={{ x: -280 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              initial={isMobile ? { x: -280 } : { width: 0 }}
+              animate={isMobile ? { x: 0 } : { width: 280 }}
+              exit={isMobile ? { x: -280 } : { width: 0 }}
+              transition={{ 
+                type: "spring", 
+                damping: 30, 
+                stiffness: 300,
+                duration: 0.3
+              }}
               className={cn(
-                "fixed top-0 left-0 z-50 w-70 h-screen bg-white border-r border-gray-200 overflow-y-auto lg:relative lg:z-auto",
-                isMobile ? "shadow-xl" : ""
+                "bg-white border-r border-gray-200 flex flex-col",
+                isMobile 
+                  ? "fixed top-0 left-0 z-50 w-70 h-full shadow-xl" 
+                  : "relative w-70 h-full"
               )}
             >
-              <div className="p-6">
-                {/* Logo */}
-                <div className="flex items-center gap-3 mb-8">
+              {/* Sidebar Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center">
                     <Database className="w-5 h-5 text-white" />
                   </div>
@@ -154,53 +158,71 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                     DataHub
                   </span>
                 </div>
+                
+                {/* Close button for mobile */}
+                {isMobile && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSidebarOpen(false)}
+                    className="p-2 hover:bg-gray-100"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
 
-                {/* Navigation Items */}
-                <nav className="space-y-2">
-                  {sidebarItems.map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                      <motion.div
-                        key={item.href}
-                        whileHover={{ x: 4 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <Button
-                          variant={isActive ? "default" : "ghost"}
-                          onClick={() => {
-                            router.push(item.href);
-                            if (isMobile) setSidebarOpen(false);
-                          }}
-                          className={cn(
-                            "w-full justify-start h-12 px-4 text-left font-medium transition-all duration-200",
-                            isActive
-                              ? "bg-gray-900 text-white hover:bg-gray-800 shadow-sm"
-                              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                          )}
+              {/* Sidebar Content - Scrollable */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-6">
+                  {/* Navigation Items */}
+                  <nav className="space-y-2">
+                    {sidebarItems.map((item) => {
+                      const isActive = pathname === item.href;
+                      return (
+                        <motion.div
+                          key={item.href}
+                          whileHover={{ x: 4 }}
+                          whileTap={{ scale: 0.98 }}
+                          transition={{ duration: 0.2 }}
                         >
-                          <item.icon className="w-5 h-5 mr-3" />
-                          {item.title}
-                        </Button>
-                      </motion.div>
-                    );
-                  })}
-                </nav>
+                          <Button
+                            variant={isActive ? "default" : "ghost"}
+                            onClick={() => {
+                              router.push(item.href);
+                              if (isMobile) setSidebarOpen(false);
+                            }}
+                            className={cn(
+                              "w-full justify-start h-12 px-4 text-left font-medium transition-all duration-200",
+                              isActive
+                                ? "bg-gray-900 text-white hover:bg-gray-800 shadow-sm"
+                                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                            )}
+                          >
+                            <item.icon className="w-5 h-5 mr-3" />
+                            {item.title}
+                          </Button>
+                        </motion.div>
+                      );
+                    })}
+                  </nav>
 
-                {/* Quick Stats */}
-                <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Stats</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Total Datasets</span>
-                      <span className="font-medium text-gray-900">12</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">This Month</span>
-                      <span className="font-medium text-gray-900">3</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Total Views</span>
-                      <span className="font-medium text-gray-900">45.2K</span>
+                  {/* Quick Stats */}
+                  <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Stats</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Datasets</span>
+                        <span className="font-medium text-gray-900">12</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">This Month</span>
+                        <span className="font-medium text-gray-900">3</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Views</span>
+                        <span className="font-medium text-gray-900">45.2K</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -211,18 +233,34 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       </AnimatePresence>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Navigation */}
-        <nav className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
+      <div className="flex-1 flex flex-col min-w-0 h-full">
+        {/* Top Navigation - Fixed */}
+        <motion.nav 
+          className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0"
+          animate={{ 
+            paddingLeft: !isMobile && sidebarOpen ? '1.5rem' : '1.5rem'
+          }}
+          transition={{ 
+            type: "spring", 
+            damping: 30, 
+            stiffness: 300,
+            duration: 0.3
+          }}
+        >
           {/* Left side - Menu Toggle */}
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleSidebar}
-              className="p-2 hover:bg-gray-100"
+              className="p-2 hover:bg-gray-100 transition-colors duration-200"
             >
-              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              <motion.div
+                animate={{ rotate: sidebarOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Menu className="w-5 h-5" />
+              </motion.div>
             </Button>
           </div>
 
@@ -235,7 +273,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                 placeholder="Search datasets..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-gray-300 focus:ring-0 bg-gray-50 hover:bg-white transition-colors"
+                className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-gray-300 focus:ring-0 bg-gray-50 hover:bg-white transition-colors duration-200"
               />
             </form>
           </div>
@@ -243,7 +281,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
           {/* Right side - Notifications and User Menu */}
           <div className="flex items-center gap-3">
             {/* Notifications */}
-            <Button variant="ghost" size="sm" className="relative p-2 hover:bg-gray-100">
+            <Button variant="ghost" size="sm" className="relative p-2 hover:bg-gray-100 transition-colors duration-200">
               <Bell className="w-5 h-5 text-gray-600" />
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </Button>
@@ -292,14 +330,15 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
               </DropdownMenu>
             )}
           </div>
-        </nav>
+        </motion.nav>
 
-        {/* Main Content */}
-        <main className="flex-1 p-6 overflow-auto">
+        {/* Main Content - Scrollable */}
+        <main className="flex-1 overflow-auto">
           <motion.div
+            className="p-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
           >
             {children}
           </motion.div>
