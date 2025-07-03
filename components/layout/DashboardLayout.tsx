@@ -148,16 +148,21 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                   : "relative w-70 h-full"
               )}
             >
-              {/* Sidebar Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                <div className="flex items-center gap-3">
+              {/* Sidebar Header with Logo */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-100 h-16">
+                <motion.div 
+                  className="flex items-center gap-3"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1, duration: 0.3 }}
+                >
                   <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center">
                     <Database className="w-5 h-5 text-white" />
                   </div>
                   <span className="text-xl font-bold text-gray-900">
                     DataHub
                   </span>
-                </div>
+                </motion.div>
                 
                 {/* Close button for mobile */}
                 {isMobile && (
@@ -177,14 +182,16 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                 <div className="p-6">
                   {/* Navigation Items */}
                   <nav className="space-y-2">
-                    {sidebarItems.map((item) => {
+                    {sidebarItems.map((item, index) => {
                       const isActive = pathname === item.href;
                       return (
                         <motion.div
                           key={item.href}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.1 + (index * 0.05), duration: 0.3 }}
                           whileHover={{ x: 4 }}
                           whileTap={{ scale: 0.98 }}
-                          transition={{ duration: 0.2 }}
                         >
                           <Button
                             variant={isActive ? "default" : "ghost"}
@@ -208,7 +215,12 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                   </nav>
 
                   {/* Quick Stats */}
-                  <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                  <motion.div 
+                    className="mt-8 p-4 bg-gray-50 rounded-lg"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.3 }}
+                  >
                     <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Stats</h3>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
@@ -224,7 +236,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                         <span className="font-medium text-gray-900">45.2K</span>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
             </motion.aside>
@@ -234,20 +246,14 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full">
-        {/* Top Navigation - Fixed */}
+        {/* Top Navigation - Fixed and Full Width */}
         <motion.nav 
-          className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0"
-          animate={{ 
-            paddingLeft: !isMobile && sidebarOpen ? '1.5rem' : '1.5rem'
-          }}
-          transition={{ 
-            type: "spring", 
-            damping: 30, 
-            stiffness: 300,
-            duration: 0.3
-          }}
+          className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0 w-full"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.3 }}
         >
-          {/* Left side - Menu Toggle */}
+          {/* Left side - Menu Toggle and Logo (when sidebar closed) */}
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -256,12 +262,32 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
               className="p-2 hover:bg-gray-100 transition-colors duration-200"
             >
               <motion.div
-                animate={{ rotate: sidebarOpen ? 180 : 0 }}
+                animate={{ rotate: sidebarOpen ? 0 : 180 }}
                 transition={{ duration: 0.2 }}
               >
                 <Menu className="w-5 h-5" />
               </motion.div>
             </Button>
+
+            {/* Logo appears when sidebar is closed */}
+            <AnimatePresence>
+              {!sidebarOpen && (
+                <motion.div 
+                  className="flex items-center gap-3"
+                  initial={{ opacity: 0, x: -20, scale: 0.8 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -20, scale: 0.8 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+                    <Database className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-xl font-bold text-gray-900">
+                    DataHub
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Center - Search Bar */}
