@@ -20,7 +20,6 @@ import {
   X,
   Clock
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { DashboardStats as StatsType, UserDataset, DatasetRequest } from '@/types/dashboard';
 
 interface DashboardOverviewProps {
@@ -94,57 +93,41 @@ export function DashboardOverview({
   ];
 
   return (
-    <motion.div 
-      className="space-y-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-    >
+    <div className="space-y-8">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {statCards.map((stat, index) => (
-          <motion.div
+        {statCards.map((stat) => (
+          <Card 
             key={stat.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.3 }}
+            className={`border hover:shadow-md transition-all duration-200 ${
+              stat.clickable ? 'cursor-pointer hover:border-gray-300' : ''
+            }`}
+            onClick={stat.clickable ? stat.action : undefined}
           >
-            <Card 
-              className={`border hover:shadow-md transition-all duration-200 ${
-                stat.clickable ? 'cursor-pointer hover:border-gray-300' : ''
-              }`}
-              onClick={stat.clickable ? stat.action : undefined}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
-                    <stat.icon className="w-6 h-6" />
-                  </div>
-                  {stat.clickable && (
-                    <ArrowUpRight className="w-4 h-4 text-gray-400" />
-                  )}
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
+                  <stat.icon className="w-6 h-6" />
                 </div>
-                
-                <div className="space-y-1">
-                  <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-sm font-medium text-gray-900">{stat.title}</p>
-                  <p className="text-xs text-gray-500">{stat.description}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+                {stat.clickable && (
+                  <ArrowUpRight className="w-4 h-4 text-gray-400" />
+                )}
+              </div>
+              
+              <div className="space-y-1">
+                <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-sm font-medium text-gray-900">{stat.title}</p>
+                <p className="text-xs text-gray-500">{stat.description}</p>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* Recent Activity & Requests */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Recent Datasets */}
-        <motion.div 
-          className="lg:col-span-2"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-        >
+        <div className="lg:col-span-2">
           <Card className="border border-gray-200 h-full">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
@@ -163,12 +146,9 @@ export function DashboardOverview({
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {recentDatasets.slice(0, 6).map((dataset, index) => (
-                <motion.div
+              {recentDatasets.slice(0, 6).map((dataset) => (
+                <div
                   key={dataset.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + (index * 0.05), duration: 0.3 }}
                   className="flex items-center gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group"
                   onClick={() => onViewDataset(dataset)}
                 >
@@ -210,7 +190,7 @@ export function DashboardOverview({
                   </div>
                   
                   <ArrowUpRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </motion.div>
+                </div>
               ))}
               
               {recentDatasets.length === 0 && (
@@ -226,15 +206,10 @@ export function DashboardOverview({
               )}
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Requests Section */}
-        <motion.div 
-          className="space-y-6"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-        >
+        <div className="space-y-6">
           {/* Received Requests */}
           <Card className="border border-gray-200">
             <CardHeader className="pb-4">
@@ -257,12 +232,9 @@ export function DashboardOverview({
             </CardHeader>
             <CardContent className="space-y-3">
               {receivedRequests.length > 0 ? (
-                receivedRequests.map((request, index) => (
-                  <motion.div
+                receivedRequests.map((request) => (
+                  <div
                     key={request.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 + (index * 0.1), duration: 0.3 }}
                     className="p-3 border border-gray-200 rounded-lg"
                   >
                     <div className="flex items-start gap-3">
@@ -297,7 +269,7 @@ export function DashboardOverview({
                         </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))
               ) : (
                 <div className="text-center py-6">
@@ -330,12 +302,9 @@ export function DashboardOverview({
             </CardHeader>
             <CardContent className="space-y-3">
               {sentRequests.length > 0 ? (
-                sentRequests.map((request, index) => (
-                  <motion.div
+                sentRequests.map((request) => (
+                  <div
                     key={request.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 + (index * 0.1), duration: 0.3 }}
                     className="p-3 border border-gray-200 rounded-lg"
                   >
                     <div className="flex items-center justify-between">
@@ -365,7 +334,7 @@ export function DashboardOverview({
                         </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))
               ) : (
                 <div className="text-center py-6">
@@ -375,8 +344,8 @@ export function DashboardOverview({
               )}
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

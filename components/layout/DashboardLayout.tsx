@@ -17,7 +17,6 @@ import {
   Database, 
   Search, 
   Menu, 
-  X, 
   User, 
   LogOut,
   Bell,
@@ -27,7 +26,6 @@ import {
   MessageSquare,
   HelpCircle
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
@@ -123,7 +121,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
             variant="ghost"
             size="sm"
             onClick={toggleSidebar}
-            className="p-2 hover:bg-gray-100 transition-colors duration-200"
+            className="p-2 hover:bg-gray-100"
           >
             <Menu className="w-5 h-5" />
           </Button>
@@ -148,7 +146,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
               placeholder="Search datasets..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-gray-300 focus:ring-0 bg-gray-50 hover:bg-white transition-colors duration-200"
+              className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-gray-300 focus:ring-0 bg-gray-50 hover:bg-white"
             />
           </form>
         </div>
@@ -156,7 +154,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
         {/* Right side - Notifications and User Menu */}
         <div className="flex items-center gap-3">
           {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative p-2 hover:bg-gray-100 transition-colors duration-200">
+          <Button variant="ghost" size="sm" className="relative p-2 hover:bg-gray-100">
             <Bell className="w-5 h-5 text-gray-600" />
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </Button>
@@ -166,7 +164,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10 border-2 border-gray-200 hover:border-gray-300 transition-colors">
+                  <Avatar className="h-10 w-10 border-2 border-gray-200 hover:border-gray-300">
                     <AvatarImage src={user.avatar} alt={user.fullName} />
                     <AvatarFallback className="bg-gray-900 text-white font-medium">
                       {user.fullName.split(' ').map(n => n[0]).join('')}
@@ -210,91 +208,77 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       {/* Main Content Area Below Navbar */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <AnimatePresence>
-          {sidebarOpen && (
-            <>
-              {/* Mobile Overlay */}
-              {isMobile && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setSidebarOpen(false)}
-                  className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-                />
+        {sidebarOpen && (
+          <>
+            {/* Mobile Overlay */}
+            {isMobile && (
+              <div
+                onClick={() => setSidebarOpen(false)}
+                className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+              />
+            )}
+
+            {/* Sidebar */}
+            <aside
+              className={cn(
+                "bg-white border-r border-gray-200 flex flex-col",
+                isMobile 
+                  ? "fixed top-16 left-0 z-50 w-70 h-[calc(100vh-4rem)] shadow-xl" 
+                  : "relative w-70 h-full"
               )}
+            >
+              {/* Sidebar Content - Scrollable */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-6">
+                  {/* Navigation Items */}
+                  <nav className="space-y-2">
+                    {sidebarItems.map((item) => {
+                      const isActive = pathname === item.href;
+                      return (
+                        <Button
+                          key={item.href}
+                          variant={isActive ? "default" : "ghost"}
+                          onClick={() => {
+                            router.push(item.href);
+                            if (isMobile) setSidebarOpen(false);
+                          }}
+                          className={cn(
+                            "w-full justify-start h-12 px-4 text-left font-medium",
+                            isActive
+                              ? "bg-gray-900 text-white hover:bg-gray-800 shadow-sm"
+                              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                          )}
+                        >
+                          <item.icon className="w-5 h-5 mr-3" />
+                          {item.title}
+                        </Button>
+                      );
+                    })}
+                  </nav>
 
-              {/* Sidebar */}
-              <motion.aside
-                initial={isMobile ? { x: -280 } : { width: 0 }}
-                animate={isMobile ? { x: 0 } : { width: 280 }}
-                exit={isMobile ? { x: -280 } : { width: 0 }}
-                transition={{ 
-                  type: "spring", 
-                  damping: 30, 
-                  stiffness: 300,
-                  duration: 0.3
-                }}
-                className={cn(
-                  "bg-white border-r border-gray-200 flex flex-col",
-                  isMobile 
-                    ? "fixed top-16 left-0 z-50 w-70 h-[calc(100vh-4rem)] shadow-xl" 
-                    : "relative w-70 h-full"
-                )}
-              >
-                {/* Sidebar Content - Scrollable */}
-                <div className="flex-1 overflow-y-auto">
-                  <div className="p-6">
-                    {/* Navigation Items */}
-                    <nav className="space-y-2">
-                      {sidebarItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                          <Button
-                            key={item.href}
-                            variant={isActive ? "default" : "ghost"}
-                            onClick={() => {
-                              router.push(item.href);
-                              if (isMobile) setSidebarOpen(false);
-                            }}
-                            className={cn(
-                              "w-full justify-start h-12 px-4 text-left font-medium transition-all duration-200",
-                              isActive
-                                ? "bg-gray-900 text-white hover:bg-gray-800 shadow-sm"
-                                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                            )}
-                          >
-                            <item.icon className="w-5 h-5 mr-3" />
-                            {item.title}
-                          </Button>
-                        );
-                      })}
-                    </nav>
-
-                    {/* Quick Stats */}
-                    <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Stats</h3>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Total Datasets</span>
-                          <span className="font-medium text-gray-900">12</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">This Month</span>
-                          <span className="font-medium text-gray-900">3</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Total Views</span>
-                          <span className="font-medium text-gray-900">45.2K</span>
-                        </div>
+                  {/* Quick Stats */}
+                  <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Stats</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Datasets</span>
+                        <span className="font-medium text-gray-900">12</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">This Month</span>
+                        <span className="font-medium text-gray-900">3</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Views</span>
+                        <span className="font-medium text-gray-900">45.2K</span>
                       </div>
                     </div>
                   </div>
                 </div>
-              </motion.aside>
-            </>
-          )}
-        </AnimatePresence>
+              </div>
+            </aside>
+          </>
+        )}
 
         {/* Main Content - Only This Area Scrolls */}
         <main className="flex-1 overflow-auto bg-gray-50">
