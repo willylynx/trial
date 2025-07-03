@@ -114,86 +114,144 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="h-screen bg-gray-50 flex overflow-hidden">
-      {/* Sidebar */}
-      <AnimatePresence>
-        {sidebarOpen && (
-          <>
-            {/* Mobile Overlay */}
-            {isMobile && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setSidebarOpen(false)}
-                className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-              />
-            )}
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+      {/* Top Navigation - Always Full Width */}
+      <nav className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0 w-full z-50">
+        {/* Left side - Menu Toggle and Logo */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleSidebar}
+            className="p-2 hover:bg-gray-100 transition-colors duration-200"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
 
-            {/* Sidebar */}
-            <motion.aside
-              initial={isMobile ? { x: -280 } : { width: 0 }}
-              animate={isMobile ? { x: 0 } : { width: 280 }}
-              exit={isMobile ? { x: -280 } : { width: 0 }}
-              transition={{ 
-                type: "spring", 
-                damping: 30, 
-                stiffness: 300,
-                duration: 0.3
-              }}
-              className={cn(
-                "bg-white border-r border-gray-200 flex flex-col",
-                isMobile 
-                  ? "fixed top-0 left-0 z-50 w-70 h-full shadow-xl" 
-                  : "relative w-70 h-full"
-              )}
-            >
-              {/* Sidebar Header with Logo */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-100 h-16">
-                <motion.div 
-                  className="flex items-center gap-3"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.1, duration: 0.3 }}
-                >
-                  <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center">
-                    <Database className="w-5 h-5 text-white" />
+          {/* Logo - Always visible in navbar */}
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+              <Database className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-xl font-bold text-gray-900">
+              DataHub
+            </span>
+          </div>
+        </div>
+
+        {/* Center - Search Bar */}
+        <div className="flex-1 max-w-2xl mx-8">
+          <form onSubmit={handleSearch} className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="Search datasets..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-gray-300 focus:ring-0 bg-gray-50 hover:bg-white transition-colors duration-200"
+            />
+          </form>
+        </div>
+
+        {/* Right side - Notifications and User Menu */}
+        <div className="flex items-center gap-3">
+          {/* Notifications */}
+          <Button variant="ghost" size="sm" className="relative p-2 hover:bg-gray-100 transition-colors duration-200">
+            <Bell className="w-5 h-5 text-gray-600" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          </Button>
+
+          {/* User Menu */}
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Avatar className="h-10 w-10 border-2 border-gray-200 hover:border-gray-300 transition-colors">
+                    <AvatarImage src={user.avatar} alt={user.fullName} />
+                    <AvatarFallback className="bg-gray-900 text-white font-medium">
+                      {user.fullName.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64 p-2" align="end" forceMount>
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={user.avatar} alt={user.fullName} />
+                    <AvatarFallback className="bg-gray-900 text-white">
+                      {user.fullName.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">{user.fullName}</p>
+                    <p className="text-sm text-gray-500 truncate">{user.email}</p>
                   </div>
-                  <span className="text-xl font-bold text-gray-900">
-                    DataHub
-                  </span>
-                </motion.div>
-                
-                {/* Close button for mobile */}
-                {isMobile && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSidebarOpen(false)}
-                    className="p-2 hover:bg-gray-100"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/profile')} className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Account Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sign Out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      </nav>
 
-              {/* Sidebar Content - Scrollable */}
-              <div className="flex-1 overflow-y-auto">
-                <div className="p-6">
-                  {/* Navigation Items */}
-                  <nav className="space-y-2">
-                    {sidebarItems.map((item, index) => {
-                      const isActive = pathname === item.href;
-                      return (
-                        <motion.div
-                          key={item.href}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.1 + (index * 0.05), duration: 0.3 }}
-                          whileHover={{ x: 4 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
+      {/* Main Content Area Below Navbar */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar */}
+        <AnimatePresence>
+          {sidebarOpen && (
+            <>
+              {/* Mobile Overlay */}
+              {isMobile && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setSidebarOpen(false)}
+                  className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+                />
+              )}
+
+              {/* Sidebar */}
+              <motion.aside
+                initial={isMobile ? { x: -280 } : { width: 0 }}
+                animate={isMobile ? { x: 0 } : { width: 280 }}
+                exit={isMobile ? { x: -280 } : { width: 0 }}
+                transition={{ 
+                  type: "spring", 
+                  damping: 30, 
+                  stiffness: 300,
+                  duration: 0.3
+                }}
+                className={cn(
+                  "bg-white border-r border-gray-200 flex flex-col",
+                  isMobile 
+                    ? "fixed top-16 left-0 z-50 w-70 h-[calc(100vh-4rem)] shadow-xl" 
+                    : "relative w-70 h-full"
+                )}
+              >
+                {/* Sidebar Content - Scrollable */}
+                <div className="flex-1 overflow-y-auto">
+                  <div className="p-6">
+                    {/* Navigation Items */}
+                    <nav className="space-y-2">
+                      {sidebarItems.map((item) => {
+                        const isActive = pathname === item.href;
+                        return (
                           <Button
+                            key={item.href}
                             variant={isActive ? "default" : "ghost"}
                             onClick={() => {
                               router.push(item.href);
@@ -209,165 +267,40 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
                             <item.icon className="w-5 h-5 mr-3" />
                             {item.title}
                           </Button>
-                        </motion.div>
-                      );
-                    })}
-                  </nav>
+                        );
+                      })}
+                    </nav>
 
-                  {/* Quick Stats */}
-                  <motion.div 
-                    className="mt-8 p-4 bg-gray-50 rounded-lg"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, duration: 0.3 }}
-                  >
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Stats</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Datasets</span>
-                        <span className="font-medium text-gray-900">12</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">This Month</span>
-                        <span className="font-medium text-gray-900">3</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Views</span>
-                        <span className="font-medium text-gray-900">45.2K</span>
+                    {/* Quick Stats */}
+                    <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Stats</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Total Datasets</span>
+                          <span className="font-medium text-gray-900">12</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">This Month</span>
+                          <span className="font-medium text-gray-900">3</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Total Views</span>
+                          <span className="font-medium text-gray-900">45.2K</span>
+                        </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 </div>
-              </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full">
-        {/* Top Navigation - Fixed and Full Width */}
-        <motion.nav 
-          className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0 w-full"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          {/* Left side - Menu Toggle and Logo (when sidebar closed) */}
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleSidebar}
-              className="p-2 hover:bg-gray-100 transition-colors duration-200"
-            >
-              <motion.div
-                animate={{ rotate: sidebarOpen ? 0 : 180 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Menu className="w-5 h-5" />
-              </motion.div>
-            </Button>
-
-            {/* Logo appears when sidebar is closed */}
-            <AnimatePresence>
-              {!sidebarOpen && (
-                <motion.div 
-                  className="flex items-center gap-3"
-                  initial={{ opacity: 0, x: -20, scale: 0.8 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: -20, scale: 0.8 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                >
-                  <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-                    <Database className="w-4 h-4 text-white" />
-                  </div>
-                  <span className="text-xl font-bold text-gray-900">
-                    DataHub
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Center - Search Bar */}
-          <div className="flex-1 max-w-2xl mx-8">
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                type="text"
-                placeholder="Search datasets..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-gray-300 focus:ring-0 bg-gray-50 hover:bg-white transition-colors duration-200"
-              />
-            </form>
-          </div>
-
-          {/* Right side - Notifications and User Menu */}
-          <div className="flex items-center gap-3">
-            {/* Notifications */}
-            <Button variant="ghost" size="sm" className="relative p-2 hover:bg-gray-100 transition-colors duration-200">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </Button>
-
-            {/* User Menu */}
-            {user && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10 border-2 border-gray-200 hover:border-gray-300 transition-colors">
-                      <AvatarImage src={user.avatar} alt={user.fullName} />
-                      <AvatarFallback className="bg-gray-900 text-white font-medium">
-                        {user.fullName.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64 p-2" align="end" forceMount>
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={user.avatar} alt={user.fullName} />
-                      <AvatarFallback className="bg-gray-900 text-white">
-                        {user.fullName.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 truncate">{user.fullName}</p>
-                      <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push('/profile')} className="cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Account Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign Out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        </motion.nav>
-
-        {/* Main Content - Scrollable */}
-        <main className="flex-1 overflow-auto">
-          <motion.div
-            className="p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          >
+        {/* Main Content - Only This Area Scrolls */}
+        <main className="flex-1 overflow-auto bg-gray-50">
+          <div className="p-6">
             {children}
-          </motion.div>
+          </div>
         </main>
       </div>
     </div>
