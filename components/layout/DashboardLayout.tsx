@@ -24,7 +24,9 @@ import {
   BarChart3,
   Upload,
   MessageSquare,
-  HelpCircle
+  HelpCircle,
+  X,
+  ArrowLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -81,6 +83,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobile, setIsMobile] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -99,6 +102,7 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setMobileSearchOpen(false);
     }
   };
 
@@ -111,8 +115,63 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const openMobileSearch = () => {
+    setMobileSearchOpen(true);
+  };
+
+  const closeMobileSearch = () => {
+    setMobileSearchOpen(false);
+    setSearchQuery('');
+  };
+
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+      {/* Mobile Search Overlay */}
+      {isMobile && mobileSearchOpen && (
+        <div className="fixed inset-0 z-[100] bg-white">
+          <div className="flex items-center gap-4 p-4 border-b border-gray-200">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={closeMobileSearch}
+              className="p-2 hover:bg-gray-100"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            
+            <form onSubmit={handleSearch} className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  type="text"
+                  placeholder="Search datasets..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 pr-4 py-3 text-lg w-full border-gray-200 focus:border-gray-300 focus:ring-0 bg-gray-50 hover:bg-white rounded-xl"
+                  autoFocus
+                />
+              </div>
+            </form>
+            
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSearchQuery('')}
+                className="p-2 hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            )}
+          </div>
+          
+          {/* Search suggestions or recent searches could go here */}
+          <div className="p-4">
+            <p className="text-sm text-gray-500">Start typing to search datasets...</p>
+          </div>
+        </div>
+      )}
+
       {/* Top Navigation - Always Full Width */}
       <nav className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0 w-full z-50">
         {/* Left side - Menu Toggle and Logo */}
@@ -131,24 +190,37 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
             <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
               <Database className="w-4 h-4 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">
-              DataHub
-            </span>
+            {!isMobile && (
+              <span className="text-xl font-bold text-gray-900">
+                DataHub
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Center - Search Bar */}
+        {/* Center - Search Bar (Desktop) / Search Button (Mobile) */}
         <div className="flex-1 max-w-2xl mx-8">
-          <form onSubmit={handleSearch} className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              type="text"
-              placeholder="Search datasets..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-gray-300 focus:ring-0 bg-gray-50 hover:bg-white"
-            />
-          </form>
+          {!isMobile ? (
+            <form onSubmit={handleSearch} className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search datasets..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full border-gray-200 focus:border-gray-300 focus:ring-0 bg-gray-50 hover:bg-white"
+              />
+            </form>
+          ) : (
+            <Button
+              variant="ghost"
+              onClick={openMobileSearch}
+              className="w-full justify-start text-gray-500 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg py-2 px-4"
+            >
+              <Search className="w-4 h-4 mr-3" />
+              <span>Search datasets...</span>
+            </Button>
+          )}
         </div>
 
         {/* Right side - Notifications and User Menu */}
@@ -206,82 +278,90 @@ export function DashboardLayout({ children, user }: DashboardLayoutProps) {
       </nav>
 
       {/* Main Content Area Below Navbar */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        {sidebarOpen && (
-          <>
-            {/* Mobile Overlay */}
-            {isMobile && (
-              <div
-                onClick={() => setSidebarOpen(false)}
-                className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-              />
-            )}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Mobile Overlay */}
+        {isMobile && sidebarOpen && (
+          <div
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+          />
+        )}
 
-            {/* Sidebar */}
-            <aside
-              className={cn(
-                "bg-white border-r border-gray-200 flex flex-col",
-                isMobile 
-                  ? "fixed top-16 left-0 z-50 w-70 h-[calc(100vh-4rem)] shadow-xl" 
-                  : "relative w-70 h-full"
-              )}
-            >
-              {/* Sidebar Content - Scrollable */}
-              <div className="flex-1 overflow-y-auto">
-                <div className="p-6">
-                  {/* Navigation Items */}
-                  <nav className="space-y-2">
-                    {sidebarItems.map((item) => {
-                      const isActive = pathname === item.href;
-                      return (
-                        <Button
-                          key={item.href}
-                          variant={isActive ? "default" : "ghost"}
-                          onClick={() => {
-                            router.push(item.href);
-                            if (isMobile) setSidebarOpen(false);
-                          }}
-                          className={cn(
-                            "w-full justify-start h-12 px-4 text-left font-medium",
-                            isActive
-                              ? "bg-gray-900 text-white hover:bg-gray-800 shadow-sm"
-                              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                          )}
-                        >
-                          <item.icon className="w-5 h-5 mr-3" />
-                          {item.title}
-                        </Button>
-                      );
-                    })}
-                  </nav>
+        {/* Sidebar with Smooth Animation */}
+        <aside
+          className={cn(
+            "bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out",
+            isMobile 
+              ? "fixed top-16 left-0 z-50 h-[calc(100vh-4rem)] shadow-xl" 
+              : "relative h-full",
+            sidebarOpen 
+              ? "w-70 translate-x-0" 
+              : isMobile 
+                ? "w-70 -translate-x-full" 
+                : "w-0 -translate-x-full"
+          )}
+        >
+          {/* Sidebar Content - Only visible when open */}
+          <div className={cn(
+            "flex-1 overflow-y-auto transition-opacity duration-300",
+            sidebarOpen ? "opacity-100" : "opacity-0"
+          )}>
+            <div className="p-6">
+              {/* Navigation Items */}
+              <nav className="space-y-2">
+                {sidebarItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Button
+                      key={item.href}
+                      variant={isActive ? "default" : "ghost"}
+                      onClick={() => {
+                        router.push(item.href);
+                        if (isMobile) setSidebarOpen(false);
+                      }}
+                      className={cn(
+                        "w-full justify-start h-12 px-4 text-left font-medium transition-colors",
+                        isActive
+                          ? "bg-gray-900 text-white hover:bg-gray-800 shadow-sm"
+                          : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                      )}
+                    >
+                      <item.icon className="w-5 h-5 mr-3" />
+                      {item.title}
+                    </Button>
+                  );
+                })}
+              </nav>
 
-                  {/* Quick Stats */}
-                  <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Stats</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Datasets</span>
-                        <span className="font-medium text-gray-900">12</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">This Month</span>
-                        <span className="font-medium text-gray-900">3</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Views</span>
-                        <span className="font-medium text-gray-900">45.2K</span>
-                      </div>
-                    </div>
+              {/* Quick Stats */}
+              <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Stats</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Datasets</span>
+                    <span className="font-medium text-gray-900">12</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">This Month</span>
+                    <span className="font-medium text-gray-900">3</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Views</span>
+                    <span className="font-medium text-gray-900">45.2K</span>
                   </div>
                 </div>
               </div>
-            </aside>
-          </>
-        )}
+            </div>
+          </div>
+        </aside>
 
         {/* Main Content - Only This Area Scrolls */}
-        <main className="flex-1 overflow-auto bg-gray-50">
+        <main 
+          className={cn(
+            "flex-1 overflow-auto bg-gray-50 transition-all duration-300 ease-in-out",
+            !isMobile && sidebarOpen ? "ml-0" : "ml-0"
+          )}
+        >
           <div className="p-6">
             {children}
           </div>
