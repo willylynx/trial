@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { UserDataset } from '@/types/dashboard';
-import { Search, Eye, Download, Calendar, Globe, Lock, MoreVertical, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Eye, Download, Calendar, Globe, Lock, MoreVertical, Edit, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DropdownMenu,
@@ -35,7 +35,9 @@ export function DatasetList({
   const filteredDatasets = datasets.filter(dataset =>
     dataset.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     dataset.category.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    dataset.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    dataset.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    dataset.source.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    dataset.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredDatasets.length / itemsPerPage);
@@ -64,18 +66,80 @@ export function DatasetList({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const clearSearch = () => {
+    setSearchQuery('');
+    setCurrentPage(1);
+  };
+
+  // Reset to first page when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
   return (
     <div className="space-y-6">
       {/* Search and Results Info */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">
-            All Datasets
-          </h2>
-          <p className="text-sm text-gray-600 mt-1">
-            {filteredDatasets.length} of {datasets.length} datasets
-            {searchQuery && ` matching "${searchQuery}"`}
-          </p>
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search your datasets..."
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-10 pr-10 border-gray-200 focus:border-gray-400 focus:ring-0 bg-white hover:bg-gray-50 transition-colors"
+          />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearSearch}
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
+            >
+              <X className="w-4 h-4 text-gray-400" />
+            </Button>
+          )}
+        </div>
+
+        {/* Results Summary */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {searchQuery ? 'Search Results' : 'All Datasets'}
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              {searchQuery ? (
+                <>
+                  {filteredDatasets.length} of {datasets.length} datasets matching "{searchQuery}"
+                </>
+              ) : (
+                `${datasets.length} total datasets`
+              )}
+            </p>
+          </div>
+
+          {/* Quick Stats */}
+          {!searchQuery && (
+            <div className="hidden md:flex items-center gap-6 text-sm text-gray-500">
+              <div className="text-center">
+                <div className="font-semibold text-gray-900">{datasets.length}</div>
+                <div>Total</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-gray-900">
+                  {datasets.reduce((acc, d) => acc + d.views, 0).toLocaleString()}
+                </div>
+                <div>Views</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-gray-900">
+                  {datasets.reduce((acc, d) => acc + d.downloads, 0).toLocaleString()}
+                </div>
+                <div>Downloads</div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -83,7 +147,7 @@ export function DatasetList({
       <AnimatePresence mode="wait">
         {paginatedDatasets.length > 0 ? (
           <motion.div
-            key={`page-${currentPage}`}
+            key={`page-${currentPage}-${searchQuery}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -148,10 +212,13 @@ export function DatasetList({
                       {dataset.title}
                     </h3>
                     
-                    {/* Date */}
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                      <Calendar className="w-4 h-4" />
-                      {formatDate(dataset.uploadDate)}
+                    {/* Source & Date */}
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                      <span className="font-medium">{dataset.source}</span>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {formatDate(dataset.uploadDate)}
+                      </div>
                     </div>
                     
                     {/* Description */}
@@ -211,9 +278,23 @@ export function DatasetList({
             <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
               <Search className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No datasets found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchQuery ? 'No datasets found' : 'No datasets yet'}
+            </h3>
             <p className="text-gray-600">
-              {searchQuery ? 'Try adjusting your search terms' : 'You haven\'t uploaded any datasets yet'}
+              {searchQuery ? (
+                <>
+                  No datasets match "{searchQuery}". Try different keywords or{' '}
+                  <button 
+                    onClick={clearSearch}
+                    className="text-blue-600 hover:text-blue-700 underline"
+                  >
+                    clear search
+                  </button>
+                </>
+              ) : (
+                'You haven\'t uploaded any datasets yet'
+              )}
             </p>
           </motion.div>
         )}
@@ -280,6 +361,7 @@ export function DatasetList({
       {totalPages > 1 && (
         <div className="text-center text-sm text-gray-500">
           Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredDatasets.length)} of {filteredDatasets.length} datasets
+          {searchQuery && ` matching "${searchQuery}"`}
         </div>
       )}
     </div>
