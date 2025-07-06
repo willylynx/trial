@@ -4,9 +4,8 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { UserDataset } from '@/types/dashboard';
-import { Search, Eye, Download, Calendar, Globe, Lock, MoreVertical, Edit, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Eye, Download, Calendar, Globe, Lock, MoreVertical, Edit, Trash2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DropdownMenu,
@@ -17,6 +16,7 @@ import {
 
 interface DatasetListProps {
   datasets: UserDataset[];
+  searchQuery: string;
   onViewDataset: (dataset: UserDataset) => void;
   onEditDataset: (dataset: UserDataset) => void;
   onDeleteDataset: (datasetId: string) => void;
@@ -24,11 +24,11 @@ interface DatasetListProps {
 
 export function DatasetList({ 
   datasets, 
+  searchQuery,
   onViewDataset, 
   onEditDataset, 
   onDeleteDataset
 }: DatasetListProps) {
-  const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9; // 3 rows of 3 cards each
 
@@ -66,80 +66,28 @@ export function DatasetList({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const clearSearch = () => {
-    setSearchQuery('');
+  // Reset to page 1 when search changes
+  useState(() => {
     setCurrentPage(1);
-  };
-
-  // Reset to first page when search changes
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    setCurrentPage(1);
-  };
+  }, [searchQuery]);
 
   return (
     <div className="space-y-6">
-      {/* Search and Results Info */}
-      <div className="space-y-4">
-        {/* Search Bar */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search your datasets..."
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-10 pr-10 border-gray-200 focus:border-gray-400 focus:ring-0 bg-white hover:bg-gray-50 transition-colors"
-          />
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearSearch}
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
-            >
-              <X className="w-4 h-4 text-gray-400" />
-            </Button>
-          )}
-        </div>
-
-        {/* Results Summary */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              {searchQuery ? 'Search Results' : 'All Datasets'}
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {searchQuery ? (
-                <>
-                  {filteredDatasets.length} of {datasets.length} datasets matching "{searchQuery}"
-                </>
-              ) : (
-                `${datasets.length} total datasets`
-              )}
-            </p>
-          </div>
-
-          {/* Quick Stats */}
-          {!searchQuery && (
-            <div className="hidden md:flex items-center gap-6 text-sm text-gray-500">
-              <div className="text-center">
-                <div className="font-semibold text-gray-900">{datasets.length}</div>
-                <div>Total</div>
-              </div>
-              <div className="text-center">
-                <div className="font-semibold text-gray-900">
-                  {datasets.reduce((acc, d) => acc + d.views, 0).toLocaleString()}
-                </div>
-                <div>Views</div>
-              </div>
-              <div className="text-center">
-                <div className="font-semibold text-gray-900">
-                  {datasets.reduce((acc, d) => acc + d.downloads, 0).toLocaleString()}
-                </div>
-                <div>Downloads</div>
-              </div>
-            </div>
-          )}
+      {/* Results Info */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {searchQuery ? 'Search Results' : 'All Datasets'}
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">
+            {searchQuery ? (
+              <>
+                {filteredDatasets.length} of {datasets.length} datasets matching "{searchQuery}"
+              </>
+            ) : (
+              `${datasets.length} total datasets`
+            )}
+          </p>
         </div>
       </div>
 
@@ -148,10 +96,10 @@ export function DatasetList({
         {paginatedDatasets.length > 0 ? (
           <motion.div
             key={`page-${currentPage}-${searchQuery}`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {paginatedDatasets.map((dataset, index) => (
@@ -284,13 +232,7 @@ export function DatasetList({
             <p className="text-gray-600">
               {searchQuery ? (
                 <>
-                  No datasets match "{searchQuery}". Try different keywords or{' '}
-                  <button 
-                    onClick={clearSearch}
-                    className="text-blue-600 hover:text-blue-700 underline"
-                  >
-                    clear search
-                  </button>
+                  No datasets match "{searchQuery}". Try different keywords.
                 </>
               ) : (
                 'You haven\'t uploaded any datasets yet'
@@ -300,8 +242,8 @@ export function DatasetList({
         )}
       </AnimatePresence>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
+      {/* Pagination - Always show when there are results and multiple pages */}
+      {filteredDatasets.length > 0 && totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-8 pt-8 border-t border-gray-200">
           <Button
             variant="outline"
@@ -358,7 +300,7 @@ export function DatasetList({
       )}
 
       {/* Pagination Info */}
-      {totalPages > 1 && (
+      {filteredDatasets.length > 0 && totalPages > 1 && (
         <div className="text-center text-sm text-gray-500">
           Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredDatasets.length)} of {filteredDatasets.length} datasets
           {searchQuery && ` matching "${searchQuery}"`}

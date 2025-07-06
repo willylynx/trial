@@ -10,8 +10,9 @@ import {
   NewDatasetForm 
 } from '@/types/dashboard';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Database, Plus } from 'lucide-react';
+import { Database, Plus, Search, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 // Mock user data
@@ -204,6 +205,7 @@ export default function DatasetsPage() {
   const [datasets, setDatasets] = useState(mockDatasets);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [editingDataset, setEditingDataset] = useState<UserDataset | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleViewDataset = (dataset: UserDataset) => {
     console.log('View dataset:', dataset);
@@ -267,6 +269,10 @@ export default function DatasetsPage() {
     setEditingDataset(null);
   };
 
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
+
   return (
     <DashboardLayout user={mockUser}>
       <div className="space-y-8">
@@ -299,6 +305,29 @@ export default function DatasetsPage() {
                 </Button>
               </div>
 
+              {/* Search Bar */}
+              <div className="mb-6">
+                <div className="relative max-w-md">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search your datasets..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-10 border-gray-200 focus:border-gray-400 focus:ring-0 bg-white hover:bg-gray-50 transition-colors"
+                  />
+                  {searchQuery && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearSearch}
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
+                    >
+                      <X className="w-4 h-4 text-gray-400" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+
               {/* Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-gray-200">
                 <div className="text-center">
@@ -307,15 +336,15 @@ export default function DatasetsPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-900">
-                    {datasets.reduce((acc, d) => acc + d.views, 0).toLocaleString()}
+                    {datasets.filter(d => d.status === 'active').length}
                   </div>
-                  <div className="text-sm text-gray-600">Total Views</div>
+                  <div className="text-sm text-gray-600">Active</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-900">
-                    {datasets.reduce((acc, d) => acc + d.downloads, 0).toLocaleString()}
+                    {datasets.filter(d => d.status === 'pending').length}
                   </div>
-                  <div className="text-sm text-gray-600">Total Downloads</div>
+                  <div className="text-sm text-gray-600">Pending</div>
                 </div>
               </div>
             </CardContent>
@@ -330,6 +359,7 @@ export default function DatasetsPage() {
         >
           <DatasetList
             datasets={datasets}
+            searchQuery={searchQuery}
             onViewDataset={handleViewDataset}
             onEditDataset={handleEditDataset}
             onDeleteDataset={handleDeleteDataset}
