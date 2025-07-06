@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { UserDataset } from '@/types/dashboard';
-import { Eye, Download, Calendar, Globe, Lock, MoreVertical, Edit, Trash2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { Search, Eye, Download, Calendar, Globe, Lock, MoreVertical, Edit, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DropdownMenu,
@@ -16,7 +17,6 @@ import {
 
 interface DatasetListProps {
   datasets: UserDataset[];
-  searchQuery: string;
   onViewDataset: (dataset: UserDataset) => void;
   onEditDataset: (dataset: UserDataset) => void;
   onDeleteDataset: (datasetId: string) => void;
@@ -24,11 +24,11 @@ interface DatasetListProps {
 
 export function DatasetList({ 
   datasets, 
-  searchQuery,
   onViewDataset, 
   onEditDataset, 
   onDeleteDataset
 }: DatasetListProps) {
+  const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9; // 3 rows of 3 cards each
 
@@ -66,30 +66,59 @@ export function DatasetList({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
+
   // Reset to page 1 when search changes
-  useState(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
   return (
     <div className="space-y-6">
-      {/* Results Info */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">
-            {searchQuery ? 'Search Results' : 'All Datasets'}
-          </h2>
-          <p className="text-sm text-gray-600 mt-1">
-            {searchQuery ? (
-              <>
-                {filteredDatasets.length} of {datasets.length} datasets matching "{searchQuery}"
-              </>
-            ) : (
-              `${datasets.length} total datasets`
+      {/* Search Bar */}
+      <Card className="border border-gray-200 shadow-sm">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {searchQuery ? 'Search Results' : 'All Datasets'}
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                {searchQuery ? (
+                  <>
+                    {filteredDatasets.length} of {datasets.length} datasets matching "{searchQuery}"
+                  </>
+                ) : (
+                  `${datasets.length} total datasets`
+                )}
+              </p>
+            </div>
+          </div>
+
+          {/* Search Input */}
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search datasets by title, category, tags, or source..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-10 border-gray-200 focus:border-gray-400 focus:ring-0 bg-white hover:bg-gray-50 transition-colors"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearSearch}
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
+              >
+                <X className="w-4 h-4 text-gray-400" />
+              </Button>
             )}
-          </p>
-        </div>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Dataset Grid */}
       <AnimatePresence mode="wait">
