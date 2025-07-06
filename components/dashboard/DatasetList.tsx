@@ -76,49 +76,47 @@ export function DatasetList({
   }, [searchQuery]);
 
   return (
-    <div className="space-y-6">
-      {/* Search Bar */}
-      <Card className="border border-gray-200 shadow-sm">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">
-                {searchQuery ? 'Search Results' : 'All Datasets'}
-              </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                {searchQuery ? (
-                  <>
-                    {filteredDatasets.length} of {datasets.length} datasets matching "{searchQuery}"
-                  </>
-                ) : (
-                  `${datasets.length} total datasets`
-                )}
-              </p>
-            </div>
+    <div className="space-y-8">
+      {/* Clean Header with Search */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {searchQuery ? 'Search Results' : 'All Datasets'}
+            </h2>
+            <p className="text-gray-600 mt-1">
+              {searchQuery ? (
+                <>
+                  {filteredDatasets.length} of {datasets.length} datasets matching "{searchQuery}"
+                </>
+              ) : (
+                `${datasets.length} total datasets`
+              )}
+            </p>
           </div>
+        </div>
 
-          {/* Search Input */}
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search datasets by title, category, tags, or source..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-10 border-gray-200 focus:border-gray-400 focus:ring-0 bg-white hover:bg-gray-50 transition-colors"
-            />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearSearch}
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
-              >
-                <X className="w-4 h-4 text-gray-400" />
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+        {/* Clean Search Bar */}
+        <div className="relative max-w-lg">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Input
+            placeholder="Search datasets by title, category, tags, or source..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-12 pr-12 py-3 text-base border-gray-200 focus:border-gray-400 focus:ring-0 bg-white hover:bg-gray-50 transition-colors rounded-lg"
+          />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearSearch}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
+            >
+              <X className="w-4 h-4 text-gray-400" />
+            </Button>
+          )}
+        </div>
+      </div>
 
       {/* Dataset Grid */}
       <AnimatePresence mode="wait">
