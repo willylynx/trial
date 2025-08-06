@@ -18,7 +18,11 @@ import {
   MessageCircle,
   Check,
   X,
-  Clock
+  Clock,
+  Link,
+  Upload,
+  FileText,
+  File
 } from 'lucide-react';
 import { DashboardStats as StatsType, UserDataset, DatasetRequest } from '@/types/dashboard';
 
@@ -59,6 +63,27 @@ export function DashboardOverview({
       return `${(num / 1000).toFixed(1)}k`;
     }
     return num.toString();
+  };
+
+  const getFileExtensionColor = (extension: string) => {
+    switch (extension.toLowerCase()) {
+      case 'csv': return 'bg-green-50 text-green-700 border-green-200';
+      case 'json': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'xlsx': case 'xls': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'pdf': return 'bg-red-50 text-red-700 border-red-200';
+      case 'xml': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'zip': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'txt': return 'bg-gray-50 text-gray-700 border-gray-200';
+      default: return 'bg-slate-50 text-slate-700 border-slate-200';
+    }
+  };
+
+  const getFileIcon = (extension: string) => {
+    switch (extension.toLowerCase()) {
+      case 'csv': case 'xlsx': case 'xls': return FileText;
+      case 'json': case 'xml': return File;
+      default: return FileText;
+    }
   };
 
   const receivedRequests = requests.filter(req => req.status === 'pending').slice(0, 2);
@@ -172,8 +197,35 @@ export function DashboardOverview({
                         )}
                         {dataset.accessibility}
                       </Badge>
+                      
+                      {/* File Extension Badge */}
+                      {dataset.fileExtension && (
+                        <Badge 
+                          variant="outline"
+                          className={`text-xs flex items-center gap-1 ${getFileExtensionColor(dataset.fileExtension)}`}
+                        >
+                          {(() => {
+                            const FileIcon = getFileIcon(dataset.fileExtension);
+                            return <FileIcon className="w-3 h-3" />;
+                          })()}
+                          {dataset.fileExtension.toUpperCase()}
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <span className="flex items-center gap-1">
+                        {dataset.isLink ? (
+                          <>
+                            <Link className="w-3 h-3" />
+                            Link
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-3 h-3" />
+                            Upload
+                          </>
+                        )}
+                      </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {formatDate(dataset.uploadDate)}

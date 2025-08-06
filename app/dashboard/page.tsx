@@ -47,7 +47,9 @@ const mockDatasets: UserDataset[] = [
     requests: 12,
     status: 'active',
     fileSize: '2.3 GB',
-    externalUrl: 'https://data.giss.nasa.gov/gistemp/'
+    externalUrl: 'https://data.giss.nasa.gov/gistemp/',
+    isLink: true,
+    fileExtension: 'csv'
   },
   {
     id: '2',
@@ -64,7 +66,9 @@ const mockDatasets: UserDataset[] = [
     requests: 8,
     status: 'active',
     fileSize: '1.8 GB',
-    fileUrl: 'air-quality-data.csv'
+    fileUrl: 'air-quality-data.csv',
+    isLink: false,
+    fileExtension: 'csv'
   },
   {
     id: '3',
@@ -81,7 +85,9 @@ const mockDatasets: UserDataset[] = [
     requests: 5,
     status: 'active',
     fileSize: '890 MB',
-    externalUrl: 'https://databank.worldbank.org/source/world-development-indicators'
+    externalUrl: 'https://databank.worldbank.org/source/world-development-indicators',
+    isLink: true,
+    fileExtension: 'xlsx'
   },
   {
     id: '4',
@@ -98,7 +104,9 @@ const mockDatasets: UserDataset[] = [
     requests: 3,
     status: 'active',
     fileSize: '1.5 GB',
-    fileUrl: 'healthcare-outcomes.json'
+    fileUrl: 'healthcare-outcomes.json',
+    isLink: false,
+    fileExtension: 'json'
   }
 ];
 

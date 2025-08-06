@@ -43,7 +43,9 @@ const mockDatasets: UserDataset[] = [
     requests: 12,
     status: 'active',
     fileSize: '2.3 GB',
-    externalUrl: 'https://data.giss.nasa.gov/gistemp/'
+    externalUrl: 'https://data.giss.nasa.gov/gistemp/',
+    isLink: true,
+    fileExtension: 'csv'
   },
   {
     id: '2',
@@ -60,7 +62,9 @@ const mockDatasets: UserDataset[] = [
     requests: 8,
     status: 'active',
     fileSize: '1.8 GB',
-    fileUrl: 'air-quality-data.csv'
+    fileUrl: 'air-quality-data.csv',
+    isLink: false,
+    fileExtension: 'csv'
   },
   {
     id: '3',
@@ -77,7 +81,9 @@ const mockDatasets: UserDataset[] = [
     requests: 5,
     status: 'active',
     fileSize: '890 MB',
-    externalUrl: 'https://databank.worldbank.org/source/world-development-indicators'
+    externalUrl: 'https://databank.worldbank.org/source/world-development-indicators',
+    isLink: true,
+    fileExtension: 'xlsx'
   },
   {
     id: '4',
@@ -94,7 +100,9 @@ const mockDatasets: UserDataset[] = [
     requests: 3,
     status: 'active',
     fileSize: '1.5 GB',
-    fileUrl: 'healthcare-outcomes.json'
+    fileUrl: 'healthcare-outcomes.json',
+    isLink: false,
+    fileExtension: 'json'
   },
   {
     id: '5',
@@ -111,7 +119,9 @@ const mockDatasets: UserDataset[] = [
     requests: 7,
     status: 'active',
     fileSize: '650 MB',
-    externalUrl: 'https://uis.unesco.org/en/uis-student-flow'
+    externalUrl: 'https://uis.unesco.org/en/uis-student-flow',
+    isLink: true,
+    fileExtension: 'pdf'
   },
   {
     id: '6',
@@ -128,7 +138,9 @@ const mockDatasets: UserDataset[] = [
     requests: 15,
     status: 'active',
     fileSize: '980 MB',
-    externalUrl: 'https://www.iea.org/data-and-statistics'
+    externalUrl: 'https://www.iea.org/data-and-statistics',
+    isLink: true,
+    fileExtension: 'xlsx'
   },
   {
     id: '7',
@@ -145,7 +157,9 @@ const mockDatasets: UserDataset[] = [
     requests: 23,
     status: 'active',
     fileSize: '4.2 GB',
-    fileUrl: 'sentiment-data.json'
+    fileUrl: 'sentiment-data.json',
+    isLink: false,
+    fileExtension: 'json'
   },
   {
     id: '8',
@@ -162,7 +176,9 @@ const mockDatasets: UserDataset[] = [
     requests: 11,
     status: 'active',
     fileSize: '1.3 GB',
-    externalUrl: 'https://www.fao.org/faostat/en/'
+    externalUrl: 'https://www.fao.org/faostat/en/',
+    isLink: true,
+    fileExtension: 'csv'
   },
   {
     id: '9',
@@ -179,7 +195,9 @@ const mockDatasets: UserDataset[] = [
     requests: 8,
     status: 'active',
     fileSize: '2.1 GB',
-    fileUrl: 'transport-data.csv'
+    fileUrl: 'transport-data.csv',
+    isLink: false,
+    fileExtension: 'csv'
   },
   {
     id: '10',
@@ -196,7 +214,9 @@ const mockDatasets: UserDataset[] = [
     requests: 6,
     status: 'active',
     fileSize: '756 MB',
-    externalUrl: 'https://www.iucnredlist.org/'
+    externalUrl: 'https://www.iucnredlist.org/',
+    isLink: true,
+    fileExtension: 'xml'
   }
 ];
 

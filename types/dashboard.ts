@@ -31,6 +31,8 @@ export interface UserDataset {
   fileUrl?: string;
   externalUrl?: string;
   fileSize?: string;
+  fileExtension?: string;
+  isLink?: boolean;
   status: 'active' | 'pending' | 'rejected';
 }
 

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { UserDataset } from '@/types/dashboard';
-import { Search, Eye, Download, Calendar, Globe, Lock, MoreVertical, Edit, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Search, Eye, Download, Calendar, Globe, Lock, MoreVertical, Edit, Trash2, ChevronLeft, ChevronRight, X, Link, FileText, File } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DropdownMenu,
@@ -58,6 +58,27 @@ export function DatasetList({
       case 'pending': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       case 'rejected': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const getFileExtensionColor = (extension: string) => {
+    switch (extension.toLowerCase()) {
+      case 'csv': return 'bg-green-50 text-green-700 border-green-200';
+      case 'json': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'xlsx': case 'xls': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'pdf': return 'bg-red-50 text-red-700 border-red-200';
+      case 'xml': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'zip': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'txt': return 'bg-gray-50 text-gray-700 border-gray-200';
+      default: return 'bg-slate-50 text-slate-700 border-slate-200';
+    }
+  };
+
+  const getFileIcon = (extension: string) => {
+    switch (extension.toLowerCase()) {
+      case 'csv': case 'xlsx': case 'xls': return FileText;
+      case 'json': case 'xml': return File;
+      default: return FileText;
     }
   };
 
@@ -157,6 +178,42 @@ export function DatasetList({
                             <Lock className="w-3 h-3" />
                           )}
                           {dataset.accessibility}
+                        </Badge>
+                        
+                        {/* File Extension Badge */}
+                        {dataset.fileExtension && (
+                          <Badge 
+                            variant="outline"
+                            className={`text-xs flex items-center gap-1 ${getFileExtensionColor(dataset.fileExtension)}`}
+                          >
+                            {(() => {
+                              const FileIcon = getFileIcon(dataset.fileExtension);
+                              return <FileIcon className="w-3 h-3" />;
+                            })()}
+                            {dataset.fileExtension.toUpperCase()}
+                          </Badge>
+                        )}
+                        
+                        {/* Link/Upload Type Badge */}
+                        <Badge 
+                          variant="outline"
+                          className={`text-xs flex items-center gap-1 ${
+                            dataset.isLink 
+                              ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                              : 'bg-gray-50 text-gray-700 border-gray-200'
+                          }`}
+                        >
+                          {dataset.isLink ? (
+                            <>
+                              <Link className="w-3 h-3" />
+                              Link
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-3 h-3" />
+                              Upload
+                            </>
+                          )}
                         </Badge>
                       </div>
                       
