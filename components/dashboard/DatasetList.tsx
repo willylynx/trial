@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { UserDataset } from '@/types/dashboard';
-import { Search, Eye, Download, Calendar, Globe, Lock, MoreVertical, Edit, Trash2, ChevronLeft, ChevronRight, X, Link, FileText, File } from 'lucide-react';
+import { Search, Eye, Download, Calendar, Globe, Lock, MoreVertical, Edit, Trash2, ChevronLeft, ChevronRight, X, Link, FileText, File, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DropdownMenu,
